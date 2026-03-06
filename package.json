@@ -8,6 +8,7 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "release": "semantic-release",
+    "verify:cli-package": "node scripts/verify-cli-package.mjs",
     "format": "biome check --write .",
     "tanky": "pnpm --filter @tanky/cli run cli"
   },
