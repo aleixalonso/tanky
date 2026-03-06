@@ -1,0 +1,27 @@
+{
+  "name": "@tanky/menubar-macos",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "tauri dev",
+    "lint": "biome check src",
+    "test": "echo 'No tests yet'"
+  },
+  "dependencies": {
+    "@tanky/core": "workspace:*",
+    "@tanky/provider-es": "workspace:*",
+    "@tanky/types": "workspace:*",
+    "@tauri-apps/api": "^2.8.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.8.0",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.2.1"
+  }
+}

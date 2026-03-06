@@ -5,3 +5,7 @@ coverage
 .DS_Store
 
 .turbo
+
+# Tauri generated/build artifacts
+**/src-tauri/target
+**/src-tauri/gen

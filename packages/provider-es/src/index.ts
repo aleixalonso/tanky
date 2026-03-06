@@ -1,5 +1,3 @@
-import { homedir } from "node:os";
-import { join } from "node:path";
 import type {
   FuelProvider,
   FuelType,
@@ -7,12 +5,10 @@ import type {
   LocationInput,
 } from "@tanky/types";
 import { cachedFetch } from "./cache/cached-fetch";
-import type { CacheStore } from "./cache/cache-store";
-import { FileCacheStore } from "./cache/file-cache-store";
+import type { CacheEntry, CacheStore } from "./cache/cache-store";
 
 export { cachedFetch };
 export type { CacheEntry, CacheStore } from "./cache/cache-store";
-export { FileCacheStore };
 
 const DATASET_URL =
   "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/";
@@ -83,9 +79,7 @@ export class SpainFuelProvider implements FuelProvider {
 
   constructor(options: SpainFuelProviderOptions = {}) {
     this.nowMs = options.nowMs ?? Date.now;
-    this.cacheStore =
-      options.cacheStore ??
-      new FileCacheStore(options.cacheDir ?? getDefaultCacheDirectory());
+    this.cacheStore = options.cacheStore ?? new LazyFileCacheStore(options.cacheDir);
   }
 
   async searchStations(input: {
@@ -206,6 +200,64 @@ export function createSpainProvider(): FuelProvider {
   return new SpainFuelProvider();
 }
 
-function getDefaultCacheDirectory(): string {
+class LazyFileCacheStore implements CacheStore {
+  private readonly cacheDir?: string;
+  private storePromise: Promise<CacheStore | null> | undefined;
+
+  constructor(cacheDir?: string) {
+    this.cacheDir = cacheDir;
+  }
+
+  async get<T>(key: string): Promise<CacheEntry<T> | null> {
+    const store = await this.getStore();
+    return store ? store.get<T>(key) : null;
+  }
+
+  async set<T>(key: string, entry: CacheEntry<T>): Promise<void> {
+    const store = await this.getStore();
+
+    if (store) {
+      await store.set(key, entry);
+    }
+  }
+
+  private async getStore(): Promise<CacheStore | null> {
+    if (!this.storePromise) {
+      this.storePromise = this.createStore();
+    }
+
+    return this.storePromise;
+  }
+
+  private async createStore(): Promise<CacheStore | null> {
+    if (isBrowserEnvironment()) {
+      return null;
+    }
+
+    try {
+      const fileCacheStoreModulePath = "./cache/file-cache-store";
+      const { FileCacheStore } = await import(
+        /* @vite-ignore */ fileCacheStoreModulePath
+      );
+
+      return new FileCacheStore(this.cacheDir ?? (await getDefaultCacheDirectory()));
+    } catch {
+      return null;
+    }
+  }
+}
+
+function isBrowserEnvironment(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.document !== "undefined"
+  );
+}
+
+async function getDefaultCacheDirectory(): Promise<string> {
+  const osModule = "node:os";
+  const pathModule = "node:path";
+  const { homedir } = await import(/* @vite-ignore */ osModule);
+  const { join } = await import(/* @vite-ignore */ pathModule);
   return join(homedir(), ".cache", "tanky", "provider-es");
 }
