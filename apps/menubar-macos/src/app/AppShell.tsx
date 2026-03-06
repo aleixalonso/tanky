@@ -7,11 +7,7 @@ import {
   getCurrentWindow,
 } from "@tauri-apps/api/window";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  FuelIcon,
-  RefreshIcon,
-  SettingsIcon,
-} from "../components/icons/NavIcons";
+import { RefreshIcon, SettingsIcon, TrophyIcon } from "../components/icons";
 import {
   DEFAULT_CONFIG,
   FUEL_LABELS,
@@ -111,7 +107,7 @@ export function AppShell() {
             aria-label="Best prices"
             onClick={() => setActiveView("best")}
           >
-            <FuelIcon />
+            <TrophyIcon />
           </button>
           <div className="nav-spacer" />
           <button
