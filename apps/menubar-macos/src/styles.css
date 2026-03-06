@@ -67,17 +67,63 @@ body {
   border: 1px solid var(--panel-border);
   background: var(--panel-bg);
   box-shadow: none;
-  padding: 12px;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.side-nav {
+  width: 52px;
+  border-right: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.02);
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+}
+
+.nav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #99a8c7;
+  font-size: 16px;
+  display: grid;
+  place-items: center;
+}
+
+.nav-btn.active {
+  color: #f2f6ff;
+  background: rgba(124, 176, 255, 0.14);
+  border-color: rgba(124, 176, 255, 0.3);
+}
+
+.nav-spacer {
+  flex: 1;
+}
+
+.panel-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
   gap: 12px;
-  overflow: hidden;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .header h1 {
@@ -105,11 +151,20 @@ body {
   text-transform: uppercase;
 }
 
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  padding: 0;
+  font-size: 14px;
+}
+
 .content {
   flex: 1;
   display: flex;
   align-items: flex-start;
   min-height: 0;
+  overflow: auto;
 }
 
 .state-text {
@@ -181,11 +236,33 @@ body {
   line-height: 1.35;
 }
 
-.actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  padding-top: 2px;
+.settings-card {
+  width: 100%;
+  border-radius: 14px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: linear-gradient(180deg, #1b2130, #171c28);
+}
+
+.settings-card h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.settings-card p {
+  margin: 0 0 6px;
+  color: #d8e1f5;
+}
+
+.settings-card small {
+  color: var(--text-muted);
+}
+
+.panel-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 button {
@@ -206,12 +283,6 @@ button {
 button:hover {
   border-color: var(--panel-border);
   background: #22293b;
-}
-
-button.quit {
-  background: rgba(190, 43, 43, 0.16);
-  color: #ffd4d4;
-  border-color: rgba(255, 114, 114, 0.24);
 }
 
 button:focus,
