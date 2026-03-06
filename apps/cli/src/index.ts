@@ -93,16 +93,25 @@ function outputStations(
     return;
   }
 
-  console.table(
-    stations.map((station) => ({
-      id: station.id,
-      name: station.name,
-      city: station.city,
-      distanceKm: station.distanceKm?.toFixed(2) ?? "-",
-      price: formatPrice(station, fuelType),
-      address: station.address,
-    })),
-  );
+  const rows = stations.map((station) => ({
+    name: station.name,
+    price: formatPrice(station, fuelType),
+    distance: station.distanceKm?.toFixed(2) ?? "-",
+    address: station.address,
+  }));
+
+  if (rows.length === 0) {
+    console.log("_No stations found._");
+    return;
+  }
+
+  for (const [index, row] of rows.entries()) {
+    console.log(`### ${index + 1}. ${escapeMarkdownCell(row.name)}`);
+    console.log(`- Price: ${escapeMarkdownCell(row.price)}`);
+    console.log(`- Distance (km): ${escapeMarkdownCell(row.distance)}`);
+    console.log(`- Address: ${escapeMarkdownCell(row.address)}`);
+    console.log("");
+  }
 }
 
 function formatPrice(station: GasStation, fuelType?: FuelType): string {
@@ -131,4 +140,8 @@ function parseInteger(value: string): number {
   }
 
   return parsed;
+}
+
+function escapeMarkdownCell(value: string): string {
+  return value.replaceAll("|", "\\|").replaceAll("\n", " ");
 }
