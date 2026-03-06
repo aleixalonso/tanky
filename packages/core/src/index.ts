@@ -80,7 +80,13 @@ export function sortByPrice(
   return [...stations].sort((left, right) => {
     const leftPrice = getStationPrice(left, fuelType);
     const rightPrice = getStationPrice(right, fuelType);
-    return leftPrice - rightPrice;
+
+    if (leftPrice !== rightPrice) {
+      return leftPrice - rightPrice;
+    }
+
+    return (left.distanceKm ?? Number.POSITIVE_INFINITY) -
+      (right.distanceKm ?? Number.POSITIVE_INFINITY);
   });
 }
 

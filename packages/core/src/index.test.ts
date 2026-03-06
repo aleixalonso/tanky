@@ -49,4 +49,33 @@ describe("@tanky/core", () => {
       "a",
     ]);
   });
+
+  it("sorts equal prices by distance", () => {
+    const samePriceStations: GasStation[] = [
+      {
+        id: "far",
+        name: "Far",
+        address: "Far Street",
+        city: "Barcelona",
+        country: "ES",
+        location: { lat: 41.39, lon: 2.17 },
+        distanceKm: 2,
+        prices: [{ type: "gasoline95", price: 1.5, currency: "EUR" }],
+      },
+      {
+        id: "near",
+        name: "Near",
+        address: "Near Street",
+        city: "Barcelona",
+        country: "ES",
+        location: { lat: 41.4, lon: 2.18 },
+        distanceKm: 1,
+        prices: [{ type: "gasoline95", price: 1.5, currency: "EUR" }],
+      },
+    ];
+
+    expect(
+      sortByPrice(samePriceStations, "gasoline95").map((station) => station.id),
+    ).toEqual(["near", "far"]);
+  });
 });
