@@ -1,7 +1,7 @@
 use tauri::image::Image;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Emitter, Listener, Manager, PhysicalPosition, WindowEvent, Wry};
+use tauri::{AppHandle, Emitter, Listener, Manager, Position, Size, WindowEvent, Wry};
 
 pub fn run() {
   tauri::Builder::default()
@@ -12,10 +12,12 @@ pub fn run() {
 
       let tray_icon = Image::from_bytes(include_bytes!("../icons/icon.png"))?;
       if let Some(main_window) = app.get_webview_window("main") {
+        let _ = move_window_offscreen(&main_window);
         let window_for_blur = main_window.clone();
         main_window.on_window_event(move |event| {
           if matches!(event, WindowEvent::Focused(false)) {
             let _ = window_for_blur.hide();
+            let _ = move_window_offscreen(&window_for_blur);
           }
         });
       }
@@ -36,13 +38,13 @@ pub fn run() {
         })
         .on_tray_icon_event(|tray, event| {
           if let TrayIconEvent::Click {
-            position,
+            rect,
             button: MouseButton::Left,
             button_state: MouseButtonState::Up,
             ..
           } = event
           {
-            let _ = toggle_main_window(tray.app_handle(), position);
+            let _ = toggle_main_window(tray.app_handle(), rect.position, rect.size);
           }
         })
         .build(app)?;
@@ -60,7 +62,8 @@ pub fn run() {
 
 fn toggle_main_window(
   app: &AppHandle<Wry>,
-  click_position: PhysicalPosition<f64>,
+  icon_position: Position,
+  icon_size: Size,
 ) -> tauri::Result<()> {
   let Some(window) = app.get_webview_window("main") else {
     return Ok(());
@@ -68,8 +71,9 @@ fn toggle_main_window(
 
   if window.is_visible()? {
     window.hide()?;
+    move_window_offscreen(&window)?;
   } else {
-    position_main_window(&window, click_position, app)?;
+    position_main_window_at_tray_icon(&window, app, icon_position, icon_size)?;
     window.show()?;
     window.set_focus()?;
   }
@@ -88,31 +92,61 @@ fn show_main_window(app: &AppHandle<Wry>) -> tauri::Result<()> {
   Ok(())
 }
 
-fn position_main_window(
+fn position_main_window_at_tray_icon(
   window: &tauri::WebviewWindow<Wry>,
-  click_position: PhysicalPosition<f64>,
   app: &AppHandle<Wry>,
+  icon_position: Position,
+  icon_size: Size,
 ) -> tauri::Result<()> {
-  let window_size = window.outer_size()?;
-  let width = window_size.width as i32;
-  let height = window_size.height as i32;
+  let (icon_x, icon_y) = match icon_position {
+    Position::Physical(pos) => (pos.x as f64, pos.y as f64),
+    Position::Logical(pos) => (pos.x, pos.y),
+  };
+  let (icon_w, icon_h) = match icon_size {
+    Size::Physical(size) => (size.width as f64, size.height as f64),
+    Size::Logical(size) => (size.width, size.height),
+  };
 
-  let mut x = click_position.x.round() as i32 - (width / 2);
-  let mut y = click_position.y.round() as i32 + 8;
+  let monitor = app
+    .monitor_from_point(icon_x, icon_y)?
+    .or(app.primary_monitor()?)
+    .ok_or_else(|| tauri::Error::FailedToReceiveMessage)?;
+  let scale = monitor.scale_factor();
 
-  if let Some(monitor) = app.monitor_from_point(click_position.x, click_position.y)? {
-    let work_area = monitor.work_area();
-    let min_x = work_area.position.x;
-    let max_x = work_area.position.x + work_area.size.width as i32 - width;
-    x = x.clamp(min_x, max_x);
+  let icon_logical_x = match icon_position {
+    Position::Physical(_) => icon_x / scale,
+    Position::Logical(_) => icon_x,
+  };
+  let icon_logical_y = match icon_position {
+    Position::Physical(_) => icon_y / scale,
+    Position::Logical(_) => icon_y,
+  };
+  let icon_logical_w = match icon_size {
+    Size::Physical(_) => icon_w / scale,
+    Size::Logical(_) => icon_w,
+  };
+  let icon_logical_h = match icon_size {
+    Size::Physical(_) => icon_h / scale,
+    Size::Logical(_) => icon_h,
+  };
 
-    let max_y = work_area.position.y + work_area.size.height as i32;
-    if y + height > max_y {
-      y = click_position.y.round() as i32 - height - 8;
-    }
-  }
+  let panel_width = match (window.outer_size(), window.scale_factor()) {
+    (Ok(size), Ok(window_scale)) => size.width as f64 / window_scale,
+    _ => 360.0,
+  };
 
-  window.set_position(PhysicalPosition::new(x, y))?;
+  let icon_center_x = icon_logical_x + (icon_logical_w / 2.0);
+  let panel_x = icon_center_x - (panel_width / 2.0);
+  let nudge_up = 6.0;
+  let panel_y = icon_logical_y + icon_logical_h - nudge_up;
+
+  window.set_position(tauri::LogicalPosition::new(panel_x, panel_y))?;
+
+  Ok(())
+}
+
+fn move_window_offscreen(window: &tauri::WebviewWindow<Wry>) -> tauri::Result<()> {
+  window.set_position(tauri::LogicalPosition::new(-10_000.0, -10_000.0))?;
 
   Ok(())
 }
