@@ -5,6 +5,17 @@ import { Command } from "commander";
 
 const DEFAULT_COUNTRY = "ES";
 const DEFAULT_RADIUS_KM = 5;
+const DEFAULT_LIMIT = 10;
+const SUPPORTED_FUEL_TYPES: FuelType[] = [
+  "gasoline95",
+  "gasoline98",
+  "diesel",
+  "dieselPremium",
+  "lpg",
+  "cng",
+  "lng",
+  "electric",
+];
 
 registerProvider(createSpainProvider());
 
@@ -20,21 +31,29 @@ program
   .description("Find the best fuel price near a location")
   .requiredOption("--lat <lat>", "Latitude", parseNumber)
   .requiredOption("--lon <lon>", "Longitude", parseNumber)
-  .option("--fuel <fuelType>", "Fuel type", "gasoline95")
+  .option("--fuel <fuelType>", "Fuel type filter", parseFuelType)
   .option(
     "--radius <radius>",
     "Search radius in kilometers",
-    parseNumber,
+    parsePositiveNumber,
     DEFAULT_RADIUS_KM,
   )
+  .option("--limit <limit>", "Maximum stations to evaluate", parsePositiveInteger, DEFAULT_LIMIT)
   .option("--country <country>", "Country code", DEFAULT_COUNTRY)
   .option("--json", "Return JSON output", false)
   .action(async (options) => {
+    if (!options.fuel) {
+      throw new Error(
+        "The --fuel option is required for 'best'. Example: tanky best --lat 41.39 --lon 2.17 --fuel gasoline95 --radius 5",
+      );
+    }
+
     const station = await getBestPrice({
       country: options.country,
       location: { lat: options.lat, lon: options.lon },
       radiusKm: options.radius,
-      fuelType: options.fuel as FuelType,
+      fuelType: options.fuel,
+      limit: options.limit,
     });
 
     if (!station) {
@@ -43,7 +62,7 @@ program
       return;
     }
 
-    outputStations([station], options.json, options.fuel as FuelType);
+    outputStations([station], options.json, options.fuel);
   });
 
 program
@@ -54,27 +73,23 @@ program
   .option(
     "--radius <radius>",
     "Search radius in kilometers",
-    parseNumber,
+    parsePositiveNumber,
     DEFAULT_RADIUS_KM,
   )
-  .option("--fuel <fuelType>", "Fuel type filter")
+  .option("--fuel <fuelType>", "Fuel type filter", parseFuelType)
   .option("--country <country>", "Country code", DEFAULT_COUNTRY)
-  .option("--limit <limit>", "Maximum stations to return", parseInteger, 10)
+  .option("--limit <limit>", "Maximum stations to return", parsePositiveInteger, DEFAULT_LIMIT)
   .option("--json", "Return JSON output", false)
   .action(async (options) => {
     const stations = await getNearestStations({
       country: options.country,
       location: { lat: options.lat, lon: options.lon },
       radiusKm: options.radius,
-      fuelType: options.fuel as FuelType | undefined,
+      fuelType: options.fuel,
       limit: options.limit,
     });
 
-    outputStations(
-      stations,
-      options.json,
-      options.fuel as FuelType | undefined,
-    );
+    outputStations(stations, options.json, options.fuel);
   });
 
 program.parseAsync(process.argv).catch((error: unknown) => {
@@ -132,14 +147,34 @@ function parseNumber(value: string): number {
   return parsed;
 }
 
-function parseInteger(value: string): number {
-  const parsed = Number.parseInt(value, 10);
+function parsePositiveNumber(value: string): number {
+  const parsed = parseNumber(value);
 
-  if (!Number.isInteger(parsed)) {
-    throw new Error(`Invalid integer: ${value}`);
+  if (parsed <= 0) {
+    throw new Error(`Expected a positive number, got: ${value}`);
   }
 
   return parsed;
+}
+
+function parsePositiveInteger(value: string): number {
+  const parsed = Number.parseInt(value, 10);
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`Expected a positive integer, got: ${value}`);
+  }
+
+  return parsed;
+}
+
+function parseFuelType(value: string): FuelType {
+  if (!SUPPORTED_FUEL_TYPES.includes(value as FuelType)) {
+    throw new Error(
+      `Unsupported fuel type: ${value}. Supported values: ${SUPPORTED_FUEL_TYPES.join(", ")}`,
+    );
+  }
+
+  return value as FuelType;
 }
 
 function escapeMarkdownCell(value: string): string {
