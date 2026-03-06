@@ -41,6 +41,9 @@ pub fn init(app_handle: &AppHandle) -> tauri::Result<()> {
         .ok_or_else(|| tauri::Error::AssetNotFound("main".into()))?;
     let panel = window.to_panel::<TankyPanel>()?;
 
+    // Match native menubar-panel look by removing opaque white backing/shadow.
+    panel.set_has_shadow(false);
+    panel.set_opaque(false);
     panel.set_level(PanelLevel::MainMenu.value() + 1);
     panel.set_collection_behavior(
         CollectionBehavior::new()

@@ -80,55 +80,59 @@ export function App() {
   }, [state]);
 
   return (
-    <main className="popup">
-      <header className="header">
-        <div>
-          <p className="label">Tanky</p>
-          <h1>Best fuel nearby</h1>
-        </div>
-        <div className="fuel-pill">{CONFIG.fuelType}</div>
-      </header>
-
-      <section className="content">
-        {state.status === "loading" && (
-          <p className="state-text">Loading prices...</p>
-        )}
-
-        {state.status === "error" && (
-          <div className="state-block error">
-            <p>Could not load fuel prices.</p>
-            <small>{state.message}</small>
+    <main className="panel-shell">
+      <div className="tray-arrow" />
+      <section className="panel-surface">
+        <header className="header">
+          <div>
+            <p className="label">Tanky</p>
+            <h1>Best fuel nearby</h1>
           </div>
-        )}
+          <div className="fuel-pill">{CONFIG.fuelType}</div>
+        </header>
 
-        {state.status === "success" && (
-          <article className="station-card">
-            <h2>{state.station.name}</h2>
-            <p className="price">
-              {selectedPrice
-                ? `${selectedPrice.price.toFixed(3)} ${selectedPrice.currency}`
-                : "-"}
-            </p>
-            <p className="meta">
-              {state.station.distanceKm?.toFixed(2) ?? "-"} km away
-            </p>
-            <p className="address">{state.station.address}</p>
-          </article>
-        )}
+        <section className="content">
+          {state.status === "loading" && (
+            <p className="state-text">Loading prices...</p>
+          )}
+
+          {state.status === "error" && (
+            <div className="state-block error">
+              <p>Could not load fuel prices.</p>
+              <small>{state.message}</small>
+            </div>
+          )}
+
+          {state.status === "success" && (
+            <article className="station-card">
+              <p className="meta-row">Best nearby station</p>
+              <h2>{state.station.name}</h2>
+              <p className="price">
+                {selectedPrice
+                  ? `${selectedPrice.price.toFixed(3)} ${selectedPrice.currency}`
+                  : "-"}
+              </p>
+              <p className="meta">
+                {state.station.distanceKm?.toFixed(2) ?? "-"} km away
+              </p>
+              <p className="address">{state.station.address}</p>
+            </article>
+          )}
+        </section>
+
+        <footer className="actions">
+          <button type="button" onClick={() => void loadBestPrice()}>
+            Refresh
+          </button>
+          <button
+            type="button"
+            className="quit"
+            onClick={() => void emit("quit-requested")}
+          >
+            Quit
+          </button>
+        </footer>
       </section>
-
-      <footer className="actions">
-        <button type="button" onClick={() => void loadBestPrice()}>
-          Refresh
-        </button>
-        <button
-          type="button"
-          className="quit"
-          onClick={() => void emit("quit-requested")}
-        >
-          Quit
-        </button>
-      </footer>
     </main>
   );
 }
