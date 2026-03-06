@@ -1,4 +1,3 @@
-import { registerProvider } from "@tanky/core";
 import type {
   FuelProvider,
   FuelType,
@@ -162,5 +161,3 @@ export function parseSpanishNumber(
 export function createSpainProvider(): FuelProvider {
   return new SpainFuelProvider();
 }
-
-registerProvider(createSpainProvider());

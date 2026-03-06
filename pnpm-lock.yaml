@@ -55,9 +55,6 @@ importers:
 
   packages/provider-es:
     dependencies:
-      '@tanky/core':
-        specifier: workspace:*
-        version: link:../core
       '@tanky/types':
         specifier: workspace:*
         version: link:../types

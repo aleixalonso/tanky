@@ -1,10 +1,12 @@
-import { getBestPrice, getNearestStations } from "@tanky/core";
-import "@tanky/provider-es";
+import { getBestPrice, getNearestStations, registerProvider } from "@tanky/core";
+import { createSpainProvider } from "@tanky/provider-es";
 import type { FuelType, GasStation } from "@tanky/types";
 import { Command } from "commander";
 
 const DEFAULT_COUNTRY = "ES";
 const DEFAULT_RADIUS_KM = 5;
+
+registerProvider(createSpainProvider());
 
 const program = new Command();
 
