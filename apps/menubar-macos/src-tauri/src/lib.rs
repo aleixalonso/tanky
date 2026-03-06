@@ -9,6 +9,9 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_nspanel::init())
         .setup(|app| {
+            #[cfg(target_os = "macos")]
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
             panel::init(app.handle())?;
 
             let refresh_item = MenuItem::with_id(app, "refresh", "Refresh", true, None::<&str>)?;
