@@ -8,7 +8,7 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "biome check --write .",
-    "tanky": "pnpm --filter tanky run cli"
+    "tanky": "pnpm --filter @tanky/cli run cli"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
