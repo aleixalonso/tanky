@@ -1,4 +1,8 @@
-import { getBestPrice, getNearestStations, registerProvider } from "@tanky/core";
+import {
+  getBestPrice,
+  getNearestStations,
+  registerProvider,
+} from "@tanky/core";
 import { createSpainProvider } from "@tanky/provider-es";
 import type { FuelType, GasStation } from "@tanky/types";
 import { Command } from "commander";
@@ -6,6 +10,7 @@ import { Command } from "commander";
 const DEFAULT_COUNTRY = "ES";
 const DEFAULT_RADIUS_KM = 5;
 const DEFAULT_LIMIT = 10;
+const DEFAULT_NEAR_SORT = "distance";
 const SUPPORTED_FUEL_TYPES: FuelType[] = [
   "gasoline95",
   "gasoline98",
@@ -16,6 +21,7 @@ const SUPPORTED_FUEL_TYPES: FuelType[] = [
   "lng",
   "electric",
 ];
+type NearSortOption = "distance" | "price";
 
 registerProvider(createSpainProvider());
 
@@ -77,6 +83,7 @@ program
     DEFAULT_RADIUS_KM,
   )
   .option("--fuel <fuelType>", "Fuel type filter", parseFuelType)
+  .option("--sort <sort>", "Sort by: distance | price", parseNearSort, DEFAULT_NEAR_SORT)
   .option("--country <country>", "Country code", DEFAULT_COUNTRY)
   .option("--limit <limit>", "Maximum stations to return", parsePositiveInteger, DEFAULT_LIMIT)
   .option("--json", "Return JSON output", false)
@@ -86,6 +93,7 @@ program
       location: { lat: options.lat, lon: options.lon },
       radiusKm: options.radius,
       fuelType: options.fuel,
+      sort: options.sort,
       limit: options.limit,
     });
 
@@ -175,6 +183,14 @@ function parseFuelType(value: string): FuelType {
   }
 
   return value as FuelType;
+}
+
+function parseNearSort(value: string): NearSortOption {
+  if (value === "distance" || value === "price") {
+    return value;
+  }
+
+  throw new Error(`Unsupported sort value: ${value}. Supported values: distance, price`);
 }
 
 function escapeMarkdownCell(value: string): string {

@@ -1,7 +1,13 @@
 import type { GasStation } from "@tanky/types";
 import { describe, expect, it } from "vitest";
 
-import { haversineDistanceKm, sortByDistance, sortByPrice } from "./index";
+import {
+  getNearestStations,
+  haversineDistanceKm,
+  registerProvider,
+  sortByDistance,
+  sortByPrice,
+} from "./index";
 
 const stations: GasStation[] = [
   {
@@ -77,5 +83,24 @@ describe("@tanky/core", () => {
     expect(
       sortByPrice(samePriceStations, "gasoline95").map((station) => station.id),
     ).toEqual(["near", "far"]);
+  });
+
+  it("supports getNearestStations sorting by price in core", async () => {
+    registerProvider({
+      country: "ZZ",
+      async searchStations() {
+        return stations;
+      },
+    });
+
+    const result = await getNearestStations({
+      country: "ZZ",
+      location: { lat: 41.39, lon: 2.17 },
+      fuelType: "gasoline95",
+      sort: "price",
+      limit: 1,
+    });
+
+    expect(result.map((station) => station.id)).toEqual(["b"]);
   });
 });

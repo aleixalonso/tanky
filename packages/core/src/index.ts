@@ -12,6 +12,11 @@ export interface SearchStationsOptions {
   fuelType?: FuelType;
   limit?: number;
 }
+export type StationSort = "distance" | "price";
+
+export interface GetNearestStationsOptions extends SearchStationsOptions {
+  sort?: StationSort;
+}
 
 export interface ProviderRegistry {
   register(provider: FuelProvider): void;
@@ -142,10 +147,19 @@ export async function getBestPrice(
 }
 
 export async function getNearestStations(
-  options: SearchStationsOptions,
+  options: GetNearestStationsOptions,
 ): Promise<GasStation[]> {
-  const stations = await searchStations(options);
-  return sortByDistance(stations);
+  const stations = await searchStations({
+    ...options,
+    limit: undefined,
+  });
+
+  const sorted =
+    options.sort === "price"
+      ? sortByPrice(stations, options.fuelType)
+      : sortByDistance(stations);
+
+  return options.limit ? sorted.slice(0, options.limit) : sorted;
 }
 
 function getStationPrice(station: GasStation, fuelType?: FuelType): number {
