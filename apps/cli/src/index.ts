@@ -11,6 +11,7 @@ const DEFAULT_COUNTRY = "ES";
 const DEFAULT_RADIUS_KM = 5;
 const DEFAULT_LIMIT = 10;
 const DEFAULT_NEAR_SORT = "distance";
+const DEFAULT_FUEL_TYPE: FuelType = "gasoline95";
 const SUPPORTED_FUEL_TYPES: FuelType[] = [
   "gasoline95",
   "gasoline98",
@@ -37,7 +38,7 @@ program
   .description("Find the best fuel price near a location")
   .requiredOption("--lat <lat>", "Latitude", parseNumber)
   .requiredOption("--lon <lon>", "Longitude", parseNumber)
-  .option("--fuel <fuelType>", "Fuel type filter", parseFuelType)
+  .option("--fuel <fuelType>", "Fuel type filter", parseFuelType, DEFAULT_FUEL_TYPE)
   .option(
     "--radius <radius>",
     "Search radius in kilometers",
@@ -48,12 +49,6 @@ program
   .option("--country <country>", "Country code", DEFAULT_COUNTRY)
   .option("--json", "Return JSON output", false)
   .action(async (options) => {
-    if (!options.fuel) {
-      throw new Error(
-        "The --fuel option is required for 'best'. Example: tanky best --lat 41.39 --lon 2.17 --fuel gasoline95 --radius 5",
-      );
-    }
-
     const station = await getBestPrice({
       country: options.country,
       location: { lat: options.lat, lon: options.lon },
@@ -82,7 +77,7 @@ program
     parsePositiveNumber,
     DEFAULT_RADIUS_KM,
   )
-  .option("--fuel <fuelType>", "Fuel type filter", parseFuelType)
+  .option("--fuel <fuelType>", "Fuel type filter", parseFuelType, DEFAULT_FUEL_TYPE)
   .option("--sort <sort>", "Sort by: distance | price", parseNearSort, DEFAULT_NEAR_SORT)
   .option("--country <country>", "Country code", DEFAULT_COUNTRY)
   .option("--limit <limit>", "Maximum stations to return", parsePositiveInteger, DEFAULT_LIMIT)
@@ -118,7 +113,7 @@ function outputStations(
 
   const rows = stations.map((station) => ({
     name: station.name,
-    price: formatPrice(station, fuelType),
+    price: getDisplayPrice(station, fuelType),
     distance: station.distanceKm?.toFixed(2) ?? "-",
     address: station.address,
   }));
@@ -130,19 +125,31 @@ function outputStations(
 
   for (const [index, row] of rows.entries()) {
     console.log(`### ${index + 1}. ${escapeMarkdownCell(row.name)}`);
-    console.log(`- Price: ${escapeMarkdownCell(row.price)}`);
+    console.log(`- Price: ${escapeMarkdownCell(row.price.value)}`);
+    console.log(`- Fuel: ${escapeMarkdownCell(row.price.fuelType)}`);
     console.log(`- Distance (km): ${escapeMarkdownCell(row.distance)}`);
     console.log(`- Address: ${escapeMarkdownCell(row.address)}`);
     console.log("");
   }
 }
 
-function formatPrice(station: GasStation, fuelType?: FuelType): string {
-  const price = fuelType
-    ? station.prices.find((entry) => entry.type === fuelType)
-    : [...station.prices].sort((left, right) => left.price - right.price)[0];
+function getDisplayPrice(
+  station: GasStation,
+  requestedFuelType?: FuelType,
+): { fuelType: string; value: string } {
+  if (requestedFuelType) {
+    const match = station.prices.find((entry) => entry.type === requestedFuelType);
+    return {
+      fuelType: requestedFuelType,
+      value: match ? `${match.price.toFixed(3)} ${match.currency}` : "-",
+    };
+  }
 
-  return price ? `${price.price.toFixed(3)} ${price.currency}` : "-";
+  const cheapest = [...station.prices].sort((left, right) => left.price - right.price)[0];
+  return {
+    fuelType: cheapest?.type ?? "unknown",
+    value: cheapest ? `${cheapest.price.toFixed(3)} ${cheapest.currency}` : "-",
+  };
 }
 
 function parseNumber(value: string): number {
