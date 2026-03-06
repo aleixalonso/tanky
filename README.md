@@ -1,4 +1,13 @@
-# Tanky
+<p align="center">
+  <img src="apps/menubar-macos/src-tauri/icons/icon.png" alt="Tanky logo" width="140" />
+</p>
+<h1 align="center">Tanky</h1>
+<p align="center">
+  <!-- <a href="https://github.com/aleixalonso/tanky/actions/workflows/release.yml"><img src="https://github.com/aleixalonso/tanky/actions/workflows/release.yml/badge.svg?branch=main" alt="Release" /></a>&nbsp;
+  <a href="https://www.npmjs.com/package/@tanky/cli"><img src="https://img.shields.io/npm/v/@tanky/cli" alt="npm version" /></a>&nbsp;
+   --><a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white" alt="Node.js >=24" /></a>&nbsp;
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
+</p>
 
 Tanky is a TypeScript CLI and SDK for retrieving fuel prices near a location. Use it from the command line or embed it in your own apps.
 
