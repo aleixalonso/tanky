@@ -2,6 +2,19 @@
   "name": "@tanky/cli",
   "version": "0.0.0-development",
   "type": "module",
+  "description": "CLI to retrieve nearby fuel prices from public datasets.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aleixalonso/tanky"
+  },
+  "homepage": "https://github.com/aleixalonso/tanky#readme",
+  "bugs": {
+    "url": "https://github.com/aleixalonso/tanky/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
   "bin": {
     "tanky": "./dist/index.js"
   },

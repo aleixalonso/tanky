@@ -1,0 +1,55 @@
+name: Release Menubar macOS
+
+on:
+  push:
+    tags:
+      - "menubar-v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Tag for the release (example: menubar-v0.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Tauri app
+        run: pnpm --filter @tanky/menubar-macos exec tauri build
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+          target_commitish: main
+          files: |
+            apps/menubar-macos/src-tauri/target/release/bundle/**/*.dmg
+            apps/menubar-macos/src-tauri/target/release/bundle/**/*.app.tar.gz
+            apps/menubar-macos/src-tauri/target/release/bundle/**/*.sig

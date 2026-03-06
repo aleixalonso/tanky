@@ -1,9 +1,23 @@
-name: Release
+name: Release CLI
 
 on:
   push:
     branches:
       - main
+    paths:
+      - "apps/cli/**"
+      - "packages/core/**"
+      - "packages/provider-es/**"
+      - "packages/types/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+      - "tsconfig.json"
+      - "tsconfig.base.json"
+      - ".releaserc.json"
+      - ".github/workflows/test-code.yml"
+      - ".github/workflows/release-cli.yml"
 
 permissions:
   contents: write
