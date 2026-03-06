@@ -13,6 +13,20 @@ Tanky is a monorepo with a TypeScript SDK, CLI, and a macOS menubar desktop app 
 
 Tagline: **Fuel price lookup, built for automation and extensibility.**
 
+## Quick Start
+
+Install globally:
+
+```bash
+npm i -g @tanky/cli
+```
+
+Run:
+
+```bash
+tanky best --lat 41.39 --lon 2.17 --fuel gasoline95 --radius 5
+```
+
 ## Features
 
 - Find the cheapest fuel station near a location (`best`)
