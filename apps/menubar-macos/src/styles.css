@@ -73,7 +73,7 @@ body {
 }
 
 .side-nav {
-  width: 52px;
+  width: 54px;
   border-right: 1px solid var(--panel-border);
   background: rgba(255, 255, 255, 0.02);
   display: flex;
@@ -84,21 +84,38 @@ body {
 }
 
 .nav-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
   color: #99a8c7;
-  font-size: 16px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
 .nav-btn.active {
   color: #f2f6ff;
-  background: rgba(124, 176, 255, 0.14);
-  border-color: rgba(124, 176, 255, 0.3);
+  background: transparent;
+  border-color: transparent;
+}
+
+.nav-btn.active::before {
+  content: "";
+  position: absolute;
+  left: -9px;
+  top: 7px;
+  bottom: 7px;
+  width: 2px;
+  border-radius: 999px;
+  background: #b9ef4d;
+}
+
+.nav-btn svg {
+  display: block;
 }
 
 .nav-spacer {
