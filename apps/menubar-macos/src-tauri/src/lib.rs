@@ -1,7 +1,7 @@
 use tauri::image::Image;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Emitter, Listener, Manager, PhysicalPosition, Wry};
+use tauri::{AppHandle, Emitter, Listener, Manager, PhysicalPosition, WindowEvent, Wry};
 
 pub fn run() {
   tauri::Builder::default()
@@ -11,6 +11,14 @@ pub fn run() {
       let menu = Menu::with_items(app, &[&refresh_item, &quit_item])?;
 
       let tray_icon = Image::from_bytes(include_bytes!("../icons/icon.png"))?;
+      if let Some(main_window) = app.get_webview_window("main") {
+        let window_for_blur = main_window.clone();
+        main_window.on_window_event(move |event| {
+          if matches!(event, WindowEvent::Focused(false)) {
+            let _ = window_for_blur.hide();
+          }
+        });
+      }
 
       TrayIconBuilder::with_id("main-tray")
         .icon(tray_icon)
