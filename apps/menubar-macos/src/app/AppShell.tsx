@@ -7,7 +7,12 @@ import {
   getCurrentWindow,
 } from "@tauri-apps/api/window";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { RefreshIcon, SettingsIcon, TrophyIcon } from "../components/icons";
+import {
+  MapPinIcon,
+  RefreshIcon,
+  SettingsIcon,
+  TrophyIcon,
+} from "../components/icons";
 import {
   DEFAULT_CONFIG,
   FUEL_LABELS,
@@ -16,7 +21,9 @@ import {
   parseStoredConfig,
 } from "../config/defaultConfig";
 import { useBestPrice } from "../hooks/useBestPrice";
+import { useNearestStations } from "../hooks/useNearestStations";
 import { BestView } from "../views/BestView";
+import { NearbyView } from "../views/NearbyView";
 import { SettingsView } from "../views/SettingsView";
 
 registerProvider(new SpainFuelProvider({ cacheStore: null }));
@@ -32,10 +39,20 @@ function getInitialConfig(): FuelLookupConfig {
 
 export function AppShell() {
   const containerRef = useRef<HTMLElement>(null);
-  const [activeView, setActiveView] = useState<"best" | "settings">("best");
+  const [activeView, setActiveView] = useState<"best" | "nearby" | "settings">(
+    "best",
+  );
   const [config, setConfig] = useState<FuelLookupConfig>(getInitialConfig);
   const { state, selectedPrice, loadBestPrice } = useBestPrice(config);
+  const { state: nearbyState, loadNearestStations } =
+    useNearestStations(config);
   const fuelLabel = FUEL_LABELS[config.fuelType] ?? config.fuelType;
+  const title =
+    activeView === "best"
+      ? "Best fuel nearby"
+      : activeView === "nearby"
+        ? "Nearby stations"
+        : "Settings";
 
   const saveConfig = useCallback((nextConfig: FuelLookupConfig) => {
     setConfig(nextConfig);
@@ -109,6 +126,14 @@ export function AppShell() {
           >
             <TrophyIcon />
           </button>
+          <button
+            type="button"
+            className={`nav-btn ${activeView === "nearby" ? "active" : ""}`}
+            aria-label="Nearby stations"
+            onClick={() => setActiveView("nearby")}
+          >
+            <MapPinIcon />
+          </button>
           <div className="nav-spacer" />
           <button
             type="button"
@@ -124,15 +149,19 @@ export function AppShell() {
           <header className="header">
             <div>
               <p className="label">Tanky</p>
-              <h1>{activeView === "best" ? "Best fuel nearby" : "Settings"}</h1>
+              <h1>{title}</h1>
             </div>
-            {activeView === "best" && (
+            {(activeView === "best" || activeView === "nearby") && (
               <div className="header-actions">
                 <div className="fuel-pill">{fuelLabel}</div>
                 <button
                   type="button"
                   className="icon-btn"
-                  onClick={() => void loadBestPrice()}
+                  onClick={() =>
+                    activeView === "best"
+                      ? void loadBestPrice()
+                      : void loadNearestStations()
+                  }
                   aria-label="Refresh"
                 >
                   <RefreshIcon />
@@ -144,6 +173,8 @@ export function AppShell() {
           <section className="content">
             {activeView === "best" ? (
               <BestView state={state} selectedPrice={selectedPrice} />
+            ) : activeView === "nearby" ? (
+              <NearbyView state={nearbyState} fuelType={config.fuelType} />
             ) : (
               <SettingsView config={config} onSave={saveConfig} />
             )}
