@@ -103,6 +103,17 @@ body {
   border-color: transparent;
 }
 
+.nav-btn:hover {
+  background: rgba(124, 176, 255, 0.1);
+  border-color: rgba(124, 176, 255, 0.2);
+  color: #f2f6ff;
+}
+
+.nav-btn.active:hover {
+  background: rgba(124, 176, 255, 0.14);
+  border-color: rgba(124, 176, 255, 0.26);
+}
+
 .nav-btn.active::before {
   content: "";
   position: absolute;
