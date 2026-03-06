@@ -9,7 +9,7 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
 </p>
 
-Tanky is a TypeScript CLI and SDK for retrieving fuel prices near a location. Use it from the command line or embed it in your own apps.
+Tanky is a monorepo with a TypeScript SDK, CLI, and a macOS menubar desktop app for fuel price lookup.
 
 Tagline: **Fuel price lookup, built for automation and extensibility.**
 
@@ -17,6 +17,7 @@ Tagline: **Fuel price lookup, built for automation and extensibility.**
 
 - Find the cheapest fuel station near a location (`best`)
 - Find nearby stations (`near`)
+- macOS menubar app (Tauri 2 + React + TypeScript)
 - Filter by fuel type
 - Configure search radius
 - Markdown CLI output by default
@@ -39,6 +40,12 @@ Run CLI commands from the monorepo root:
 ```bash
 pnpm tanky best --lat 41.39 --lon 2.17 --fuel gasoline95
 pnpm tanky near --lat 41.39 --lon 2.17 --radius 5 --limit 10
+```
+
+Run the menubar app:
+
+```bash
+pnpm --filter @tanky/menubar-macos dev
 ```
 
 ### Package usage
@@ -142,6 +149,7 @@ Tanky uses a provider-based monorepo architecture:
 ```text
 apps/
   cli/
+  menubar-macos/
 
 packages/
   core/
@@ -153,6 +161,19 @@ packages/
 - `@tanky/core`: provider registry, distance/radius logic, sorting, and SDK API (`searchStations`, `getBestPrice`, `getNearestStations`)
 - `@tanky/provider-es`: Spain provider implementation (fetch + normalize + cache)
 - `@tanky/cli`: command-line interface built with Commander
+- `@tanky/menubar-macos`: macOS menubar desktop app using Tauri 2 + React
+
+## Desktop App
+
+The first desktop app lives at `apps/menubar-macos`.
+
+- Menubar icon + popup panel
+- Best price tab
+- Nearby stations tab
+- Settings tab (location, fuel type, radius)
+- Uses shared logic from `@tanky/core` and `@tanky/provider-es` (no duplicated business logic)
+
+See [apps/menubar-macos/README.md](apps/menubar-macos/README.md) for app-specific setup and details.
 
 ## Data Sources
 
