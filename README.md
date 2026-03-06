@@ -1,25 +1,165 @@
 # Tanky
 
-Tanky is a TypeScript monorepo for retrieving fuel prices near a location.
+Tanky is a TypeScript CLI and SDK for retrieving fuel prices near a location. Use it from the command line or embed it in your own apps.
 
-## Packages
+Tagline: **Fuel price lookup, built for automation and extensibility.**
 
-- `@tanky/types`: shared domain types.
-- `@tanky/core`: provider registry, search helpers, and public SDK.
-- `@tanky/provider-es`: Spain provider backed by the public fuel station dataset.
-- `@tanky/cli`: CLI for best-price and nearby-station lookups.
+## Features
 
-## Getting started
+- Find the cheapest fuel station near a location (`best`)
+- Find nearby stations (`near`)
+- Filter by fuel type
+- Configure search radius
+- Markdown CLI output by default
+- JSON output for automation (`--json`)
+- Modular provider architecture for multi-country support
+- Provider-side caching for dataset fetches
+- TypeScript SDK for programmatic usage
+
+## Installation
+
+### From this repository
+
+```bash
+pnpm install
+pnpm build
+```
+
+Run CLI commands from the monorepo root:
+
+```bash
+pnpm tanky best --lat 41.39 --lon 2.17 --fuel gasoline95
+pnpm tanky near --lat 41.39 --lon 2.17 --radius 5 --limit 10
+```
+
+### Package usage
+
+```bash
+npx tanky best --lat 41.39 --lon 2.17 --fuel gasoline95
+```
+
+If installed globally, use:
+
+```bash
+tanky best --lat 41.39 --lon 2.17 --fuel gasoline95
+```
+
+## CLI Usage
+
+Tanky exposes two commands:
+
+- `tanky best`
+- `tanky near`
+
+### Find cheapest fuel
+
+```bash
+tanky best --lat 41.39 --lon 2.17 --fuel gasoline95 --radius 5
+```
+
+Returns the cheapest station for the selected fuel type inside the search radius.
+
+Supported options:
+
+- `--lat <number>` required
+- `--lon <number>` required
+- `--radius <number>` default: `5`
+- `--fuel <fuelType>` default: `gasoline95`
+- `--limit <number>` default: `10`
+- `--json`
+
+### Find nearby stations
+
+```bash
+tanky near --lat 41.39 --lon 2.17 --radius 5 --limit 10 --fuel diesel
+```
+
+Returns nearby stations ordered by distance or price.
+
+Supported options:
+
+- `--lat <number>` required
+- `--lon <number>` required
+- `--radius <number>` default: `5`
+- `--fuel <fuelType>` default: `gasoline95`
+- `--sort <distance|price>` default: `distance`
+- `--limit <number>` default: `10`
+- `--json`
+
+Validation includes positive `radius`/`limit` and supported fuel types.
+
+## CLI Output
+
+Tanky outputs Markdown by default.
+
+Example:
+
+```md
+### 1. PETROPRIX
+- Price: 1.519 EUR
+- Fuel: gasoline95
+- Distance (km): 2.28
+- Address: CALLE BADAJOZ, 108
+```
+
+Use JSON mode for machine consumption:
+
+```bash
+--json
+```
+
+When `--json` is provided, Tanky prints a JSON array of normalized `GasStation` objects with no extra text.
+
+## SDK Usage
+
+```ts
+import { getBestPrice, registerProvider } from "@tanky/core";
+import { createSpainProvider } from "@tanky/provider-es";
+
+registerProvider(createSpainProvider());
+
+const result = await getBestPrice({
+  country: "ES",
+  location: { lat: 41.39, lon: 2.17 },
+  fuelType: "gasoline95",
+  radiusKm: 5,
+});
+```
+
+## Architecture
+
+Tanky uses a provider-based monorepo architecture:
+
+```text
+apps/
+  cli/
+
+packages/
+  core/
+  provider-es/
+  types/
+```
+
+- `@tanky/types`: shared domain types (`FuelType`, `GasStation`, `FuelProvider`, etc.)
+- `@tanky/core`: provider registry, distance/radius logic, sorting, and SDK API (`searchStations`, `getBestPrice`, `getNearestStations`)
+- `@tanky/provider-es`: Spain provider implementation (fetch + normalize + cache)
+- `@tanky/cli`: command-line interface built with Commander
+
+## Data Sources
+
+Current Spain provider dataset:
+
+- https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/
+
+## Development
 
 ```bash
 pnpm install
 pnpm build
 pnpm dev
+pnpm test
 ```
 
-Run the CLI through the workspace root:
+## License
 
-```bash
-pnpm tanky best --lat 41.39 --lon 2.17
-pnpm tanky near --lat 41.39 --lon 2.17 --radius 5
-```
+MIT
