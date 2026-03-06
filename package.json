@@ -1,0 +1,20 @@
+{
+  "name": "tanky",
+  "private": true,
+  "packageManager": "pnpm@10.8.0",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "format": "biome check --write .",
+    "tanky": "pnpm --filter tanky run cli"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "turbo": "^2.5.0",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.8",
+    "@types/node": "^24.0.0"
+  }
+}
