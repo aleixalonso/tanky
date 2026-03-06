@@ -1,12 +1,23 @@
+import { homedir } from "node:os";
+import { join } from "node:path";
 import type {
   FuelProvider,
   FuelType,
   GasStation,
   LocationInput,
 } from "@tanky/types";
+import { cachedFetch } from "./cache/cached-fetch";
+import type { CacheStore } from "./cache/cache-store";
+import { FileCacheStore } from "./cache/file-cache-store";
+
+export { cachedFetch };
+export type { CacheEntry, CacheStore } from "./cache/cache-store";
+export { FileCacheStore };
 
 const DATASET_URL =
   "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/";
+const DATASET_CACHE_KEY = "provider-es:stations";
+const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 
 interface SpanishStationRecord {
   "C.P.": string;
@@ -46,6 +57,12 @@ interface DatasetResponse {
   ResultadoConsulta: string;
 }
 
+interface SpainFuelProviderOptions {
+  cacheStore?: CacheStore | null;
+  cacheDir?: string;
+  nowMs?: () => number;
+}
+
 const fuelFieldMap: Record<string, FuelType> = {
   "Precio Gasolina 95 E5": "gasoline95",
   "Precio Gasolina 95 E10": "gasoline95",
@@ -61,6 +78,15 @@ const fuelFieldMap: Record<string, FuelType> = {
 
 export class SpainFuelProvider implements FuelProvider {
   country = "ES";
+  private readonly cacheStore: CacheStore | null;
+  private readonly nowMs: () => number;
+
+  constructor(options: SpainFuelProviderOptions = {}) {
+    this.nowMs = options.nowMs ?? Date.now;
+    this.cacheStore =
+      options.cacheStore ??
+      new FileCacheStore(options.cacheDir ?? getDefaultCacheDirectory());
+  }
 
   async searchStations(input: {
     location: LocationInput;
@@ -68,22 +94,7 @@ export class SpainFuelProvider implements FuelProvider {
     fuelType?: FuelType;
     limit?: number;
   }): Promise<GasStation[]> {
-    const response = await fetch(DATASET_URL, {
-      headers: {
-        Accept: "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch Spanish fuel dataset: ${response.status}`,
-      );
-    }
-
-    const payload = (await response.json()) as DatasetResponse;
-    const normalized = payload.ListaEESSPrecio.map(normalizeStation).filter(
-      (station): station is GasStation => station !== undefined,
-    );
+    const normalized = await this.getNormalizedStations();
 
     const filteredByFuel = input.fuelType
       ? normalized.filter((station) =>
@@ -91,6 +102,39 @@ export class SpainFuelProvider implements FuelProvider {
         )
       : normalized;
     return filteredByFuel;
+  }
+
+  private async getNormalizedStations(): Promise<GasStation[]> {
+    const stations = await cachedFetch<GasStation[]>({
+      key: DATASET_CACHE_KEY,
+      ttlMs: CACHE_TTL_MS,
+      cacheStore: this.cacheStore,
+      nowMs: this.nowMs(),
+      fetchFresh: async () => {
+        const response = await fetch(DATASET_URL, {
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch Spanish fuel dataset: ${response.status}`,
+          );
+        }
+
+        const payload = (await response.json()) as DatasetResponse;
+        return payload.ListaEESSPrecio.map(normalizeStation).filter(
+          (station): station is GasStation => station !== undefined,
+        );
+      },
+    });
+
+    if (stations === null) {
+      throw new Error("Failed to fetch Spanish fuel dataset");
+    }
+
+    return stations;
   }
 }
 
@@ -160,4 +204,8 @@ export function parseSpanishNumber(
 
 export function createSpainProvider(): FuelProvider {
   return new SpainFuelProvider();
+}
+
+function getDefaultCacheDirectory(): string {
+  return join(homedir(), ".cache", "tanky", "provider-es");
 }
