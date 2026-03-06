@@ -56,6 +56,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build
+        run: pnpm build
+
       - name: Pack CLI
         id: pack_cli
         working-directory: apps/cli
@@ -65,9 +68,6 @@ jobs:
 
       - name: Verify CLI Package Artifact
         run: pnpm verify:cli-package "${{ steps.pack_cli.outputs.tarball_path }}"
-
-      - name: Build
-        run: pnpm build
 
       - name: Release
         run: pnpm release
