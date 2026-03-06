@@ -44,6 +44,10 @@ importers:
 
   apps/cli:
     dependencies:
+      commander:
+        specifier: ^14.0.0
+        version: 14.0.3
+    devDependencies:
       '@tanky/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -53,10 +57,6 @@ importers:
       '@tanky/types':
         specifier: workspace:*
         version: link:../../packages/types
-      commander:
-        specifier: ^14.0.0
-        version: 14.0.3
-    devDependencies:
       tsup:
         specifier: ^8.4.0
         version: 8.5.1(postcss@8.5.8)(typescript@5.9.3)
