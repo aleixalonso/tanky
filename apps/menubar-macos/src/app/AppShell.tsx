@@ -28,6 +28,8 @@ import { SettingsView } from "../views/SettingsView";
 
 registerProvider(new SpainFuelProvider({ cacheStore: null }));
 
+const MIN_PANEL_HEIGHT_LOGICAL = 620;
+
 function getInitialConfig(): FuelLookupConfig {
   const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
   if (!stored) {
@@ -80,6 +82,7 @@ export function AppShell() {
       const desiredLogicalHeight = Math.ceil(container.scrollHeight);
       const desiredPhysicalHeight = Math.ceil(desiredLogicalHeight * scale);
       const targetPhysicalWidth = Math.ceil(400 * scale);
+      const minPhysicalHeight = Math.ceil(MIN_PANEL_HEIGHT_LOGICAL * scale);
 
       let maxPhysicalHeight = Math.ceil(600 * scale);
       try {
@@ -92,7 +95,7 @@ export function AppShell() {
       }
 
       const targetPhysicalHeight = Math.min(
-        desiredPhysicalHeight,
+        Math.max(desiredPhysicalHeight, minPhysicalHeight),
         maxPhysicalHeight,
       );
       await getCurrentWindow().setSize(

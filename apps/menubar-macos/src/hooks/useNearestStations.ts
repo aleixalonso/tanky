@@ -25,7 +25,7 @@ export function useNearestStations(config: FuelLookupConfig) {
         fuelType: config.fuelType,
         radiusKm: config.radiusKm,
         limit: 8,
-        sort: "price",
+        sort: "distance",
       });
 
       setState({ status: "success", stations });
