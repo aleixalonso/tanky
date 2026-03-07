@@ -173,7 +173,7 @@ packages/
 
 - `@tanky/types`: shared domain types (`FuelType`, `GasStation`, `FuelProvider`, etc.)
 - `@tanky/core`: provider registry, distance/radius logic, sorting, and SDK API (`searchStations`, `getBestPrice`, `getNearestStations`)
-- `@tanky/provider-es`: Spain provider implementation (fetch + normalize + cache)
+- `@tanky/provider-es`: Spain provider implementation (fetch + normalize)
 - `@tanky/cli`: command-line interface built with Commander
 - `@tanky/menubar-macos`: macOS menubar desktop app using Tauri 2 + React
 

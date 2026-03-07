@@ -1,6 +1,3 @@
-import { mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { normalizeStation, parseSpanishNumber, SpainFuelProvider } from "./index";
@@ -62,14 +59,8 @@ describe("@tanky/provider-es", () => {
     );
   });
 
-  it("reuses cache when age is within 12 hour TTL", async () => {
-    let now = 0;
-    const cacheDir = await mkdtemp(join(tmpdir(), "tanky-provider-es-"));
-    const provider = new SpainFuelProvider({
-      nowMs: () => now,
-      cacheDir,
-    });
-
+  it("fetches and normalizes stations from the dataset", async () => {
+    const provider = new SpainFuelProvider();
     const fetchMock = vi.fn(async () => ({
       ok: true,
       async json() {
@@ -78,33 +69,22 @@ describe("@tanky/provider-es", () => {
     }));
 
     vi.stubGlobal("fetch", fetchMock);
+    let stations;
 
     try {
-      await provider.searchStations({
-        location: { lat: 41.39, lon: 2.17 },
-      });
-
-      now = 12 * 60 * 60 * 1000 - 1;
-
-      await provider.searchStations({
+      stations = await provider.searchStations({
         location: { lat: 41.39, lon: 2.17 },
       });
     } finally {
       vi.unstubAllGlobals();
-      await rm(cacheDir, { recursive: true, force: true });
     }
 
+    expect(stations).toHaveLength(1);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("refetches when cache is older than 12 hour TTL", async () => {
-    let now = 0;
-    const cacheDir = await mkdtemp(join(tmpdir(), "tanky-provider-es-"));
-    const provider = new SpainFuelProvider({
-      nowMs: () => now,
-      cacheDir,
-    });
-
+  it("filters stations by fuel type after fetching", async () => {
+    const provider = new SpainFuelProvider();
     const fetchMock = vi.fn(async () => ({
       ok: true,
       async json() {
@@ -113,96 +93,38 @@ describe("@tanky/provider-es", () => {
     }));
 
     vi.stubGlobal("fetch", fetchMock);
+    let stations;
 
     try {
-      await provider.searchStations({
+      stations = await provider.searchStations({
         location: { lat: 41.39, lon: 2.17 },
-      });
-
-      now = 12 * 60 * 60 * 1000 + 1;
-
-      await provider.searchStations({
-        location: { lat: 41.39, lon: 2.17 },
+        fuelType: "lng",
       });
     } finally {
       vi.unstubAllGlobals();
-      await rm(cacheDir, { recursive: true, force: true });
     }
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-  });
-
-  it("reuses persisted cache across instances while within TTL", async () => {
-    const cacheDir = await mkdtemp(join(tmpdir(), "tanky-provider-es-"));
-    const fetchMock = vi.fn(async () => ({
-      ok: true,
-      async json() {
-        return createDatasetResponse();
-      },
-    }));
-
-    vi.stubGlobal("fetch", fetchMock);
-
-    try {
-      const providerA = new SpainFuelProvider({
-        cacheDir,
-        nowMs: () => 0,
-      });
-      await providerA.searchStations({
-        location: { lat: 41.39, lon: 2.17 },
-      });
-
-      const providerB = new SpainFuelProvider({
-        cacheDir,
-        nowMs: () => 1,
-      });
-      await providerB.searchStations({
-        location: { lat: 41.39, lon: 2.17 },
-      });
-    } finally {
-      vi.unstubAllGlobals();
-      await rm(cacheDir, { recursive: true, force: true });
-    }
-
+    expect(stations).toEqual([]);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("returns stale cache when fetch fails after TTL", async () => {
-    let now = 0;
-    const cacheDir = await mkdtemp(join(tmpdir(), "tanky-provider-es-"));
-
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => createDatasetResponse(),
-      })
-      .mockRejectedValueOnce(new Error("network"));
+  it("throws when the dataset request fails", async () => {
+    const provider = new SpainFuelProvider();
+    const fetchMock = vi.fn(async () => ({
+      ok: false,
+      status: 503,
+    }));
 
     vi.stubGlobal("fetch", fetchMock);
 
     try {
-      const provider = new SpainFuelProvider({
-        cacheDir,
-        nowMs: () => now,
-      });
-
-      const first = await provider.searchStations({
-        location: { lat: 41.39, lon: 2.17 },
-      });
-
-      now = 12 * 60 * 60 * 1000 + 1;
-
-      const second = await provider.searchStations({
-        location: { lat: 41.39, lon: 2.17 },
-      });
-
-      expect(second).toEqual(first);
+      await expect(
+        provider.searchStations({
+          location: { lat: 41.39, lon: 2.17 },
+        }),
+      ).rejects.toThrow("Failed to fetch Spanish fuel dataset: 503");
     } finally {
       vi.unstubAllGlobals();
-      await rm(cacheDir, { recursive: true, force: true });
     }
-
-    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

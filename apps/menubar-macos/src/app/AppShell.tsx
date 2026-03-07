@@ -26,7 +26,7 @@ import { BestView } from "../views/BestView";
 import { NearbyView } from "../views/NearbyView";
 import { SettingsView } from "../views/SettingsView";
 
-registerProvider(new SpainFuelProvider({ cacheStore: null }));
+registerProvider(new SpainFuelProvider());
 
 const MIN_PANEL_HEIGHT_LOGICAL = 620;
 

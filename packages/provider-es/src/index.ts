@@ -4,16 +4,9 @@ import type {
   GasStation,
   LocationInput,
 } from "@tanky/types";
-import { cachedFetch } from "./cache/cached-fetch";
-import type { CacheEntry, CacheStore } from "./cache/cache-store";
-
-export { cachedFetch };
-export type { CacheEntry, CacheStore } from "./cache/cache-store";
 
 const DATASET_URL =
   "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/";
-const DATASET_CACHE_KEY = "provider-es:stations";
-const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 
 interface SpanishStationRecord {
   "C.P.": string;
@@ -53,12 +46,6 @@ interface DatasetResponse {
   ResultadoConsulta: string;
 }
 
-interface SpainFuelProviderOptions {
-  cacheStore?: CacheStore | null;
-  cacheDir?: string;
-  nowMs?: () => number;
-}
-
 const fuelFieldMap: Record<string, FuelType> = {
   "Precio Gasolina 95 E5": "gasoline95",
   "Precio Gasolina 95 E10": "gasoline95",
@@ -74,13 +61,6 @@ const fuelFieldMap: Record<string, FuelType> = {
 
 export class SpainFuelProvider implements FuelProvider {
   country = "ES";
-  private readonly cacheStore: CacheStore | null;
-  private readonly nowMs: () => number;
-
-  constructor(options: SpainFuelProviderOptions = {}) {
-    this.nowMs = options.nowMs ?? Date.now;
-    this.cacheStore = options.cacheStore ?? new LazyFileCacheStore(options.cacheDir);
-  }
 
   async searchStations(input: {
     location: LocationInput;
@@ -99,36 +79,20 @@ export class SpainFuelProvider implements FuelProvider {
   }
 
   private async getNormalizedStations(): Promise<GasStation[]> {
-    const stations = await cachedFetch<GasStation[]>({
-      key: DATASET_CACHE_KEY,
-      ttlMs: CACHE_TTL_MS,
-      cacheStore: this.cacheStore,
-      nowMs: this.nowMs(),
-      fetchFresh: async () => {
-        const response = await fetch(DATASET_URL, {
-          headers: {
-            Accept: "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch Spanish fuel dataset: ${response.status}`,
-          );
-        }
-
-        const payload = (await response.json()) as DatasetResponse;
-        return payload.ListaEESSPrecio.map(normalizeStation).filter(
-          (station): station is GasStation => station !== undefined,
-        );
+    const response = await fetch(DATASET_URL, {
+      headers: {
+        Accept: "application/json",
       },
     });
 
-    if (stations === null) {
-      throw new Error("Failed to fetch Spanish fuel dataset");
+    if (!response.ok) {
+      throw new Error(`Failed to fetch Spanish fuel dataset: ${response.status}`);
     }
 
-    return stations;
+    const payload = (await response.json()) as DatasetResponse;
+    return payload.ListaEESSPrecio.map(normalizeStation).filter(
+      (station): station is GasStation => station !== undefined,
+    );
   }
 }
 
@@ -198,66 +162,4 @@ export function parseSpanishNumber(
 
 export function createSpainProvider(): FuelProvider {
   return new SpainFuelProvider();
-}
-
-class LazyFileCacheStore implements CacheStore {
-  private readonly cacheDir?: string;
-  private storePromise: Promise<CacheStore | null> | undefined;
-
-  constructor(cacheDir?: string) {
-    this.cacheDir = cacheDir;
-  }
-
-  async get<T>(key: string): Promise<CacheEntry<T> | null> {
-    const store = await this.getStore();
-    return store ? store.get<T>(key) : null;
-  }
-
-  async set<T>(key: string, entry: CacheEntry<T>): Promise<void> {
-    const store = await this.getStore();
-
-    if (store) {
-      await store.set(key, entry);
-    }
-  }
-
-  private async getStore(): Promise<CacheStore | null> {
-    if (!this.storePromise) {
-      this.storePromise = this.createStore();
-    }
-
-    return this.storePromise;
-  }
-
-  private async createStore(): Promise<CacheStore | null> {
-    if (isBrowserEnvironment()) {
-      return null;
-    }
-
-    try {
-      const fileCacheStoreModulePath = "./cache/file-cache-store";
-      const { FileCacheStore } = await import(
-        /* @vite-ignore */ fileCacheStoreModulePath
-      );
-
-      return new FileCacheStore(this.cacheDir ?? (await getDefaultCacheDirectory()));
-    } catch {
-      return null;
-    }
-  }
-}
-
-function isBrowserEnvironment(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.document !== "undefined"
-  );
-}
-
-async function getDefaultCacheDirectory(): Promise<string> {
-  const osModule = "node:os";
-  const pathModule = "node:path";
-  const { homedir } = await import(/* @vite-ignore */ osModule);
-  const { join } = await import(/* @vite-ignore */ pathModule);
-  return join(homedir(), ".cache", "tanky", "provider-es");
 }
