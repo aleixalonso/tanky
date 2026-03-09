@@ -56,6 +56,9 @@ export function AppShell() {
       : activeView === "nearby"
         ? "Nearby stations"
         : "Settings";
+  const isRefreshing =
+    (activeView === "best" && state.status === "loading") ||
+    (activeView === "nearby" && nearbyState.status === "loading");
 
   const saveConfig = useCallback((nextConfig: FuelLookupConfig) => {
     setConfig(nextConfig);
@@ -188,6 +191,7 @@ export function AppShell() {
                   className="icon-btn"
                   onClick={refreshActiveView}
                   aria-label="Refresh"
+                  disabled={isRefreshing}
                 >
                   <RefreshIcon />
                 </button>

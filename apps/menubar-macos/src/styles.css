@@ -189,6 +189,11 @@ body {
   font-size: 14px;
 }
 
+.icon-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .content {
   flex: 1;
   display: flex;
