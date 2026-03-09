@@ -4,6 +4,7 @@ import type { GasStation } from "@tanky/types";
 import { listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useState } from "react";
 import type { FuelLookupConfig } from "../config/defaultConfig";
+import { spainProvider } from "../lib/providerRegistry";
 
 export type NearbyStationsState =
   | { status: "loading" }
@@ -46,6 +47,7 @@ export function useNearestStations(
     let unlisten: (() => void) | undefined;
 
     void listen("tray-refresh", () => {
+      spainProvider.clearCache();
       void loadNearestStations();
     }).then((cleanup) => {
       unlisten = cleanup;

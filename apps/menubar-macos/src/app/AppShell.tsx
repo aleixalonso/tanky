@@ -1,6 +1,4 @@
 import type { StationSort } from "@tanky/core";
-import { registerProvider } from "@tanky/core";
-import { SpainFuelProvider } from "@tanky/provider-es";
 import { isTauri } from "@tauri-apps/api/core";
 import {
   PhysicalSize,
@@ -23,11 +21,10 @@ import {
 } from "../config/defaultConfig";
 import { useBestPrice } from "../hooks/useBestPrice";
 import { useNearestStations } from "../hooks/useNearestStations";
+import { spainProvider } from "../lib/providerRegistry";
 import { BestView } from "../views/BestView";
 import { NearbyView } from "../views/NearbyView";
 import { SettingsView } from "../views/SettingsView";
-
-registerProvider(new SpainFuelProvider());
 
 const MIN_PANEL_HEIGHT_LOGICAL = 620;
 
@@ -74,6 +71,19 @@ export function AppShell() {
     },
     [config, saveConfig],
   );
+
+  const refreshActiveView = useCallback(() => {
+    spainProvider.clearCache();
+
+    if (activeView === "best") {
+      void loadBestPrice();
+      return;
+    }
+
+    if (activeView === "nearby") {
+      void loadNearestStations();
+    }
+  }, [activeView, loadBestPrice, loadNearestStations]);
 
   useEffect(() => {
     if (!isTauri()) {
@@ -176,11 +186,7 @@ export function AppShell() {
                 <button
                   type="button"
                   className="icon-btn"
-                  onClick={() =>
-                    activeView === "best"
-                      ? void loadBestPrice()
-                      : void loadNearestStations()
-                  }
+                  onClick={refreshActiveView}
                   aria-label="Refresh"
                 >
                   <RefreshIcon />

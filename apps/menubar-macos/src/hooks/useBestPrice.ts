@@ -3,6 +3,7 @@ import type { GasStation } from "@tanky/types";
 import { listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FuelLookupConfig } from "../config/defaultConfig";
+import { spainProvider } from "../lib/providerRegistry";
 
 export type BestPriceState =
   | { status: "loading" }
@@ -46,6 +47,7 @@ export function useBestPrice(config: FuelLookupConfig) {
     let unlisten: (() => void) | undefined;
 
     void listen("tray-refresh", () => {
+      spainProvider.clearCache();
       void loadBestPrice();
     }).then((cleanup) => {
       unlisten = cleanup;

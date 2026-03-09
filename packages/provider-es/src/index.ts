@@ -23,12 +23,29 @@ const fuelFieldMap: Record<string, FuelType> = {
   "Precio Gas Natural Licuado": "lng",
 };
 
+const DEFAULT_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
+
+type SpainFuelProviderOptions = {
+  cacheTtlMs?: number;
+};
+
 export class SpainFuelProvider implements FuelProvider {
   country = "ES";
+  private readonly cacheTtlMs: number;
+  private normalizedStationsCache:
+    | {
+        stations: GasStation[];
+        expiresAt: number;
+      }
+    | undefined;
+  private pendingNormalizedStations: Promise<GasStation[]> | undefined;
 
   constructor(
     private readonly client: SpainFuelApiClient = new HttpSpainFuelApiClient(),
-  ) {}
+    options: SpainFuelProviderOptions = {},
+  ) {
+    this.cacheTtlMs = options.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
+  }
 
   async searchStations(input: {
     location: LocationInput;
@@ -46,11 +63,39 @@ export class SpainFuelProvider implements FuelProvider {
     return filteredByFuel;
   }
 
+  clearCache(): void {
+    this.normalizedStationsCache = undefined;
+    this.pendingNormalizedStations = undefined;
+  }
+
   private async getNormalizedStations(): Promise<GasStation[]> {
-    const payload = await this.client.getStations();
-    return payload.ListaEESSPrecio.map(normalizeStation).filter(
-      (station): station is GasStation => station !== undefined,
-    );
+    const cached = this.normalizedStationsCache;
+    const now = Date.now();
+    if (cached && cached.expiresAt > now) {
+      return cached.stations;
+    }
+
+    if (!this.pendingNormalizedStations) {
+      this.pendingNormalizedStations = this.client
+        .getStations()
+        .then((payload) => {
+          const stations = payload.ListaEESSPrecio.map(normalizeStation).filter(
+            (station): station is GasStation => station !== undefined,
+          );
+
+          this.normalizedStationsCache = {
+            stations,
+            expiresAt: Date.now() + this.cacheTtlMs,
+          };
+
+          return stations;
+        })
+        .finally(() => {
+          this.pendingNormalizedStations = undefined;
+        });
+    }
+
+    return this.pendingNormalizedStations;
   }
 }
 

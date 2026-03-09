@@ -98,6 +98,41 @@ describe("@tanky/provider-es", () => {
     expect(stations).toEqual([]);
   });
 
+  it("reuses the in-memory dataset cache across searches", async () => {
+    const client = {
+      getStations: vi.fn(async () => createDatasetResponse()),
+    };
+    const provider = new SpainFuelProvider(client);
+
+    await provider.searchStations({
+      location: { lat: 41.39, lon: 2.17 },
+      fuelType: "gasoline95",
+    });
+    await provider.searchStations({
+      location: { lat: 41.39, lon: 2.17 },
+      fuelType: "diesel",
+    });
+
+    expect(client.getStations).toHaveBeenCalledTimes(1);
+  });
+
+  it("invalidates the in-memory cache on demand", async () => {
+    const client = {
+      getStations: vi.fn(async () => createDatasetResponse()),
+    };
+    const provider = new SpainFuelProvider(client);
+
+    await provider.searchStations({
+      location: { lat: 41.39, lon: 2.17 },
+    });
+    provider.clearCache();
+    await provider.searchStations({
+      location: { lat: 41.39, lon: 2.17 },
+    });
+
+    expect(client.getStations).toHaveBeenCalledTimes(2);
+  });
+
   it("delegates dataset fetching to the HTTP client", async () => {
     const client = new HttpSpainFuelApiClient();
     const fetchMock = vi.fn(async () => ({
