@@ -1,8 +1,3 @@
-import {
-  checkPermissions,
-  getCurrentPosition,
-  requestPermissions,
-} from "@tauri-apps/plugin-geolocation";
 import { useEffect, useMemo, useState } from "react";
 import type { FuelLookupConfig } from "../config/defaultConfig";
 import { FUEL_LABELS, FUEL_OPTIONS } from "../config/defaultConfig";
@@ -100,25 +95,20 @@ export function SettingsView({ config, onSave }: SettingsViewProps) {
     setSaved(false);
 
     try {
-      let permissions = await checkPermissions();
-
-      if (
-        permissions.location === "prompt" ||
-        permissions.location === "prompt-with-rationale"
-      ) {
-        permissions = await requestPermissions(["location"]);
-      }
-
-      if (permissions.location !== "granted") {
-        setError("Location permission was not granted.");
+      if (!("geolocation" in navigator)) {
+        setError("Geolocation is not available on this device.");
         return;
       }
 
-      const position = await getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      });
+      const position = await new Promise<GeolocationPosition>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          });
+        },
+      );
 
       setForm((prev) => ({
         ...prev,
@@ -126,6 +116,18 @@ export function SettingsView({ config, onSave }: SettingsViewProps) {
         lon: position.coords.longitude.toFixed(5),
       }));
     } catch (locationError) {
+      if (locationError instanceof GeolocationPositionError) {
+        if (locationError.code === locationError.PERMISSION_DENIED) {
+          setError("Location permission was not granted.");
+          return;
+        }
+
+        if (locationError.code === locationError.TIMEOUT) {
+          setError("Timed out while determining your current location.");
+          return;
+        }
+      }
+
       const message =
         locationError instanceof Error
           ? locationError.message

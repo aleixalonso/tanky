@@ -7,7 +7,6 @@ use tauri::{Emitter, Listener};
 
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_geolocation::init())
         .plugin(tauri_nspanel::init())
         .setup(|app| {
             #[cfg(target_os = "macos")]

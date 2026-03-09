@@ -3119,7 +3119,6 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-nspanel",
- "tauri-plugin-geolocation",
 ]
 
 [[package]]
@@ -3302,37 +3301,6 @@ dependencies = [
  "objc2-foundation",
  "pastey",
  "tauri",
-]
-
-[[package]]
-name = "tauri-plugin"
-version = "2.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddde7d51c907b940fb573006cdda9a642d6a7c8153657e88f8a5c3c9290cd4aa"
-dependencies = [
- "anyhow",
- "glob",
- "plist",
- "schemars 0.8.22",
- "serde",
- "serde_json",
- "tauri-utils",
- "toml 0.9.12+spec-1.1.0",
- "walkdir",
-]
-
-[[package]]
-name = "tauri-plugin-geolocation"
-version = "2.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0366e51823ad001ff1a47f116cd34ddfea3d94ebeb2309caf42e290dec27e0a6"
-dependencies = [
- "log",
- "serde",
- "serde_json",
- "tauri",
- "tauri-plugin",
- "thiserror 2.0.18",
 ]
 
 [[package]]
