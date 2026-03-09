@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Tanky Menubar",
+  "productName": "Tanky",
   "version": "0.1.0",
   "identifier": "com.tanky.menubar",
   "build": {
