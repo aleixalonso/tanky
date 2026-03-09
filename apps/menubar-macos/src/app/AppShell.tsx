@@ -65,6 +65,16 @@ export function AppShell() {
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(nextConfig));
   }, []);
 
+  const updateFuelType = useCallback(
+    (fuelType: FuelLookupConfig["fuelType"]) => {
+      saveConfig({
+        ...config,
+        fuelType,
+      });
+    },
+    [config, saveConfig],
+  );
+
   useEffect(() => {
     if (!isTauri()) {
       return;
@@ -160,7 +170,9 @@ export function AppShell() {
             </div>
             {(activeView === "best" || activeView === "nearby") && (
               <div className="header-actions">
-                <div className="fuel-pill">{fuelLabel}</div>
+                {activeView === "best" && (
+                  <div className="fuel-pill">{fuelLabel}</div>
+                )}
                 <button
                   type="button"
                   className="icon-btn"
@@ -185,6 +197,7 @@ export function AppShell() {
                 state={nearbyState}
                 fuelType={config.fuelType}
                 sort={nearbySort}
+                onFuelTypeChange={updateFuelType}
                 onSortChange={setNearbySort}
               />
             ) : (

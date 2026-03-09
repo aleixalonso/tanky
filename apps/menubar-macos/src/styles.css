@@ -288,12 +288,19 @@ body {
 
 .nearby-toolbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
 }
 
 .nearby-sort {
   margin-top: 0;
   width: 132px;
+}
+
+.nearby-fuel-type {
+  margin-top: 0;
+  flex: 1;
 }
 
 .nearby-item {
