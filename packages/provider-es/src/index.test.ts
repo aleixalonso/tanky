@@ -1,6 +1,12 @@
+import type { GasStation } from "@tanky/types";
 import { describe, expect, it, vi } from "vitest";
 
-import { normalizeStation, parseSpanishNumber, SpainFuelProvider } from "./index";
+import {
+  HttpSpainFuelApiClient,
+  SpainFuelProvider,
+  normalizeStation,
+  parseSpanishNumber,
+} from "./index";
 
 function createDatasetResponse() {
   return {
@@ -48,7 +54,9 @@ describe("@tanky/provider-es", () => {
   });
 
   it("normalizes a Spanish station record", () => {
-    const station = normalizeStation(createDatasetResponse().ListaEESSPrecio[0]);
+    const station = normalizeStation(
+      createDatasetResponse().ListaEESSPrecio[0],
+    );
 
     expect(station?.country).toBe("ES");
     expect(station?.prices).toEqual(
@@ -60,31 +68,38 @@ describe("@tanky/provider-es", () => {
   });
 
   it("fetches and normalizes stations from the dataset", async () => {
-    const provider = new SpainFuelProvider();
-    const fetchMock = vi.fn(async () => ({
-      ok: true,
-      async json() {
+    const client = {
+      async getStations() {
         return createDatasetResponse();
       },
-    }));
+    };
+    const provider = new SpainFuelProvider(client);
 
-    vi.stubGlobal("fetch", fetchMock);
-    let stations;
-
-    try {
-      stations = await provider.searchStations({
-        location: { lat: 41.39, lon: 2.17 },
-      });
-    } finally {
-      vi.unstubAllGlobals();
-    }
+    const stations: GasStation[] = await provider.searchStations({
+      location: { lat: 41.39, lon: 2.17 },
+    });
 
     expect(stations).toHaveLength(1);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("filters stations by fuel type after fetching", async () => {
-    const provider = new SpainFuelProvider();
+    const client = {
+      async getStations() {
+        return createDatasetResponse();
+      },
+    };
+    const provider = new SpainFuelProvider(client);
+
+    const stations: GasStation[] = await provider.searchStations({
+      location: { lat: 41.39, lon: 2.17 },
+      fuelType: "lng",
+    });
+
+    expect(stations).toEqual([]);
+  });
+
+  it("delegates dataset fetching to the HTTP client", async () => {
+    const client = new HttpSpainFuelApiClient();
     const fetchMock = vi.fn(async () => ({
       ok: true,
       async json() {
@@ -93,23 +108,19 @@ describe("@tanky/provider-es", () => {
     }));
 
     vi.stubGlobal("fetch", fetchMock);
-    let stations;
 
     try {
-      stations = await provider.searchStations({
-        location: { lat: 41.39, lon: 2.17 },
-        fuelType: "lng",
-      });
+      await expect(client.getStations()).resolves.toEqual(
+        createDatasetResponse(),
+      );
+      expect(fetchMock).toHaveBeenCalledTimes(1);
     } finally {
       vi.unstubAllGlobals();
     }
-
-    expect(stations).toEqual([]);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("throws when the dataset request fails", async () => {
-    const provider = new SpainFuelProvider();
+  it("throws when the HTTP client request fails", async () => {
+    const client = new HttpSpainFuelApiClient();
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 503,
@@ -118,11 +129,9 @@ describe("@tanky/provider-es", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     try {
-      await expect(
-        provider.searchStations({
-          location: { lat: 41.39, lon: 2.17 },
-        }),
-      ).rejects.toThrow("Failed to fetch Spanish fuel dataset: 503");
+      await expect(client.getStations()).rejects.toThrow(
+        "Failed to fetch Spanish fuel dataset: 503",
+      );
     } finally {
       vi.unstubAllGlobals();
     }
