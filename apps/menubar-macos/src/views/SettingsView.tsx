@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useMemo, useState } from "react";
 import type { FuelLookupConfig } from "../config/defaultConfig";
 import { FUEL_LABELS, FUEL_OPTIONS } from "../config/defaultConfig";
@@ -12,6 +13,11 @@ type FormState = {
   lon: string;
   radiusKm: string;
   fuelType: FuelLookupConfig["fuelType"];
+};
+
+type CurrentLocation = {
+  latitude: number;
+  longitude: number;
 };
 
 export function SettingsView({ config, onSave }: SettingsViewProps) {
@@ -95,43 +101,18 @@ export function SettingsView({ config, onSave }: SettingsViewProps) {
     setSaved(false);
 
     try {
-      if (!("geolocation" in navigator)) {
-        setError("Geolocation is not available on this device.");
-        return;
-      }
-
-      const position = await new Promise<GeolocationPosition>(
-        (resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0,
-          });
-        },
-      );
+      const position = await invoke<CurrentLocation>("get_current_location");
 
       setForm((prev) => ({
         ...prev,
-        lat: position.coords.latitude.toFixed(5),
-        lon: position.coords.longitude.toFixed(5),
+        lat: position.latitude.toFixed(5),
+        lon: position.longitude.toFixed(5),
       }));
     } catch (locationError) {
-      if (locationError instanceof GeolocationPositionError) {
-        if (locationError.code === locationError.PERMISSION_DENIED) {
-          setError("Location permission was not granted.");
-          return;
-        }
-
-        if (locationError.code === locationError.TIMEOUT) {
-          setError("Timed out while determining your current location.");
-          return;
-        }
-      }
-
       const message =
         locationError instanceof Error
           ? locationError.message
-          : "Could not determine your current location.";
+          : String(locationError);
       setError(message);
     } finally {
       setIsLocating(false);

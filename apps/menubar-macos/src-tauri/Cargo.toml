@@ -19,4 +19,6 @@ tauri = { version = "2", features = ["macos-private-api", "tray-icon", "image-pn
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2.1" }
 
 [target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-core-location = "0.3"
 objc2-foundation = "0.3"

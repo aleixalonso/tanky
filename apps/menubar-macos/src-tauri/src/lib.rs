@@ -1,3 +1,4 @@
+mod location;
 mod panel;
 
 use tauri::image::Image;
@@ -5,9 +6,17 @@ use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{Emitter, Listener};
 
+#[tauri::command]
+fn get_current_location(
+    app: tauri::AppHandle,
+) -> Result<location::CurrentLocation, String> {
+    location::get_current_location(&app)
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_nspanel::init())
+        .invoke_handler(tauri::generate_handler![get_current_location])
         .setup(|app| {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
