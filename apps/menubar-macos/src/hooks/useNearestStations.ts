@@ -1,4 +1,5 @@
 import { getNearestStations } from "@tanky/core";
+import type { StationSort } from "@tanky/core";
 import type { GasStation } from "@tanky/types";
 import { listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useState } from "react";
@@ -9,7 +10,10 @@ export type NearbyStationsState =
   | { status: "error"; message: string }
   | { status: "success"; stations: GasStation[] };
 
-export function useNearestStations(config: FuelLookupConfig) {
+export function useNearestStations(
+  config: FuelLookupConfig,
+  sort: StationSort,
+) {
   const [state, setState] = useState<NearbyStationsState>({
     status: "loading",
   });
@@ -24,7 +28,7 @@ export function useNearestStations(config: FuelLookupConfig) {
         fuelType: config.fuelType,
         radiusKm: config.radiusKm,
         limit: 8,
-        sort: "distance",
+        sort,
       });
 
       setState({ status: "success", stations });
@@ -32,7 +36,7 @@ export function useNearestStations(config: FuelLookupConfig) {
       const message = error instanceof Error ? error.message : String(error);
       setState({ status: "error", message });
     }
-  }, [config.country, config.fuelType, config.location, config.radiusKm]);
+  }, [config.country, config.fuelType, config.location, config.radiusKm, sort]);
 
   useEffect(() => {
     void loadNearestStations();

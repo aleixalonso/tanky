@@ -1,3 +1,4 @@
+import type { StationSort } from "@tanky/core";
 import { registerProvider } from "@tanky/core";
 import { SpainFuelProvider } from "@tanky/provider-es";
 import { isTauri } from "@tauri-apps/api/core";
@@ -44,10 +45,13 @@ export function AppShell() {
   const [activeView, setActiveView] = useState<"best" | "nearby" | "settings">(
     "best",
   );
+  const [nearbySort, setNearbySort] = useState<StationSort>("distance");
   const [config, setConfig] = useState<FuelLookupConfig>(getInitialConfig);
   const { state, selectedPrice, loadBestPrice } = useBestPrice(config);
-  const { state: nearbyState, loadNearestStations } =
-    useNearestStations(config);
+  const { state: nearbyState, loadNearestStations } = useNearestStations(
+    config,
+    nearbySort,
+  );
   const fuelLabel = FUEL_LABELS[config.fuelType] ?? config.fuelType;
   const title =
     activeView === "best"
@@ -177,7 +181,12 @@ export function AppShell() {
             {activeView === "best" ? (
               <BestView state={state} selectedPrice={selectedPrice} />
             ) : activeView === "nearby" ? (
-              <NearbyView state={nearbyState} fuelType={config.fuelType} />
+              <NearbyView
+                state={nearbyState}
+                fuelType={config.fuelType}
+                sort={nearbySort}
+                onSortChange={setNearbySort}
+              />
             ) : (
               <SettingsView config={config} onSave={saveConfig} />
             )}
