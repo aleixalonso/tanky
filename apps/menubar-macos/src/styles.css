@@ -213,6 +213,7 @@ body {
   width: 100%;
   min-height: 0;
   display: flex;
+  align-self: stretch;
   align-items: center;
   justify-content: center;
 }
