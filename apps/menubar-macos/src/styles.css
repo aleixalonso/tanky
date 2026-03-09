@@ -516,6 +516,11 @@ button:hover {
   background: #22293b;
 }
 
+button:disabled:hover {
+  border-color: transparent;
+  background: var(--panel-soft);
+}
+
 button:focus,
 button:focus-visible,
 button:active {
