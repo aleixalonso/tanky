@@ -203,6 +203,11 @@ body {
   display: none;
 }
 
+.content-nearby {
+  overflow: hidden;
+  align-items: stretch;
+}
+
 .state-text {
   color: var(--text-muted);
   font-size: 14px;
@@ -274,16 +279,29 @@ body {
 
 .nearby-list {
   width: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
+  scrollbar-width: none;
+}
+
+.nearby-list::-webkit-scrollbar {
+  display: none;
 }
 
 .nearby-section {
   width: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow: hidden;
 }
 
 .nearby-toolbar {

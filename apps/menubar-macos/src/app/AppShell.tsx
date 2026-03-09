@@ -189,7 +189,11 @@ export function AppShell() {
             )}
           </header>
 
-          <section className="content">
+          <section
+            className={`content ${
+              activeView === "nearby" ? "content-nearby" : ""
+            }`}
+          >
             {activeView === "best" ? (
               <BestView state={state} selectedPrice={selectedPrice} />
             ) : activeView === "nearby" ? (
