@@ -1,4 +1,5 @@
 import type { GasStation } from "@tanky/types";
+import { RefreshIcon } from "../components/icons";
 
 type BestViewProps = {
   state:
@@ -10,7 +11,13 @@ type BestViewProps = {
 
 export function BestView({ state, selectedPrice }: BestViewProps) {
   if (state.status === "loading") {
-    return <p className="state-text">Loading prices...</p>;
+    return (
+      <div className="loading-state" aria-label="Loading fuel prices">
+        <div className="spinner" aria-hidden="true">
+          <RefreshIcon />
+        </div>
+      </div>
+    );
   }
 
   if (state.status === "error") {
