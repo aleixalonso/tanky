@@ -1,8 +1,7 @@
 import { getNearestStations } from "@tanky/core";
 import type { GasStation } from "@tanky/types";
 import { listen } from "@tauri-apps/api/event";
-import { useCallback, useEffect } from "react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { FuelLookupConfig } from "../config/defaultConfig";
 
 export type NearbyStationsState =
