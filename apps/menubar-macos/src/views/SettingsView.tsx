@@ -1,3 +1,8 @@
+import {
+  checkPermissions,
+  getCurrentPosition,
+  requestPermissions,
+} from "@tauri-apps/plugin-geolocation";
 import { useEffect, useMemo, useState } from "react";
 import type { FuelLookupConfig } from "../config/defaultConfig";
 import { FUEL_LABELS, FUEL_OPTIONS } from "../config/defaultConfig";
@@ -23,6 +28,7 @@ export function SettingsView({ config, onSave }: SettingsViewProps) {
   });
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
 
   useEffect(() => {
     setForm({
@@ -88,6 +94,48 @@ export function SettingsView({ config, onSave }: SettingsViewProps) {
     setSaved(false);
   };
 
+  const onUseCurrentLocationClick = async () => {
+    setIsLocating(true);
+    setError(null);
+    setSaved(false);
+
+    try {
+      let permissions = await checkPermissions();
+
+      if (
+        permissions.location === "prompt" ||
+        permissions.location === "prompt-with-rationale"
+      ) {
+        permissions = await requestPermissions(["location"]);
+      }
+
+      if (permissions.location !== "granted") {
+        setError("Location permission was not granted.");
+        return;
+      }
+
+      const position = await getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      });
+
+      setForm((prev) => ({
+        ...prev,
+        lat: position.coords.latitude.toFixed(5),
+        lon: position.coords.longitude.toFixed(5),
+      }));
+    } catch (locationError) {
+      const message =
+        locationError instanceof Error
+          ? locationError.message
+          : "Could not determine your current location.";
+      setError(message);
+    } finally {
+      setIsLocating(false);
+    }
+  };
+
   return (
     <article className="settings-card">
       <h2>Fuel Search</h2>
@@ -112,6 +160,17 @@ export function SettingsView({ config, onSave }: SettingsViewProps) {
             onChange={(event) => onChangeField("lon", event.target.value)}
           />
         </label>
+      </div>
+
+      <div className="settings-inline-actions">
+        <button
+          type="button"
+          className="settings-btn ghost"
+          onClick={() => void onUseCurrentLocationClick()}
+          disabled={isLocating}
+        >
+          {isLocating ? "Locating..." : "Use current location"}
+        </button>
       </div>
 
       <label className="field">

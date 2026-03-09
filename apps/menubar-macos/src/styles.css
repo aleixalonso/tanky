@@ -411,6 +411,12 @@ body {
   margin-top: 6px;
 }
 
+.settings-inline-actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-start;
+}
+
 .field {
   display: flex;
   flex-direction: column;
