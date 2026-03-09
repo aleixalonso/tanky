@@ -1,5 +1,6 @@
 import type { StationSort } from "@tanky/core";
 import type { FuelType, GasStation } from "@tanky/types";
+import { RefreshIcon } from "../components/icons";
 import { FUEL_LABELS, FUEL_OPTIONS } from "../config/defaultConfig";
 
 type NearbyViewProps = {
@@ -53,7 +54,11 @@ export function NearbyView({
       </div>
 
       {state.status === "loading" ? (
-        <p className="state-text">Loading nearby stations...</p>
+        <div className="loading-state" aria-label="Loading nearby stations">
+          <div className="spinner" aria-hidden="true">
+            <RefreshIcon />
+          </div>
+        </div>
       ) : state.status === "error" ? (
         <div className="state-block error">
           <p>Could not load nearby stations.</p>
