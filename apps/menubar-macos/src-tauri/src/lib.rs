@@ -13,11 +13,19 @@ fn get_current_location(
     location::get_current_location(&app)
 }
 
+#[tauri::command]
+fn set_panel_auto_hide_suspended(suspended: bool) {
+    panel::set_auto_hide_suspended(suspended);
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_nspanel::init())
-        .invoke_handler(tauri::generate_handler![get_current_location])
+        .invoke_handler(tauri::generate_handler![
+            get_current_location,
+            set_panel_auto_hide_suspended
+        ])
         .setup(|app| {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);

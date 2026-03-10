@@ -1,7 +1,11 @@
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use tauri::{AppHandle, Manager, Position, Size};
 use tauri_nspanel::{
     tauri_panel, CollectionBehavior, ManagerExt, PanelLevel, StyleMask, WebviewWindowExt,
 };
+
+static AUTO_HIDE_SUSPENDED: AtomicBool = AtomicBool::new(false);
 
 macro_rules! get_or_init_panel {
     ($app_handle:expr) => {
@@ -56,6 +60,10 @@ pub fn init(app_handle: &AppHandle) -> tauri::Result<()> {
     let event_handler = TankyPanelEventHandler::new();
     let handle = app_handle.clone();
     event_handler.window_did_resign_key(move |_notification| {
+        if AUTO_HIDE_SUSPENDED.load(Ordering::Relaxed) {
+            return;
+        }
+
         if let Ok(panel) = handle.get_webview_panel("main") {
             panel.hide();
         }
@@ -63,6 +71,10 @@ pub fn init(app_handle: &AppHandle) -> tauri::Result<()> {
     panel.set_event_handler(Some(event_handler.as_ref()));
 
     Ok(())
+}
+
+pub fn set_auto_hide_suspended(suspended: bool) {
+    AUTO_HIDE_SUSPENDED.store(suspended, Ordering::Relaxed);
 }
 
 pub fn toggle_panel(

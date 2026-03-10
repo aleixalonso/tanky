@@ -101,6 +101,7 @@ export function SettingsView({ config, onSave }: SettingsViewProps) {
     setSaved(false);
 
     try {
+      await invoke("set_panel_auto_hide_suspended", { suspended: true });
       const position = await invoke<CurrentLocation>("get_current_location");
 
       setForm((prev) => ({
@@ -115,6 +116,7 @@ export function SettingsView({ config, onSave }: SettingsViewProps) {
           : String(locationError);
       setError(message);
     } finally {
+      await invoke("set_panel_auto_hide_suspended", { suspended: false });
       setIsLocating(false);
     }
   };
