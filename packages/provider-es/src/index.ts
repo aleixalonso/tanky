@@ -25,12 +25,14 @@ const fuelFieldMap: Record<string, FuelType> = {
 
 const DEFAULT_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 
-type SpainFuelProviderOptions = {
+export type SpainFuelProviderOptions = {
   cacheTtlMs?: number;
+  client?: SpainFuelApiClient;
 };
 
 export class SpainFuelProvider implements FuelProvider {
   country = "ES";
+  private readonly client: SpainFuelApiClient;
   private readonly cacheTtlMs: number;
   private normalizedStationsCache:
     | {
@@ -40,10 +42,8 @@ export class SpainFuelProvider implements FuelProvider {
     | undefined;
   private pendingNormalizedStations: Promise<GasStation[]> | undefined;
 
-  constructor(
-    private readonly client: SpainFuelApiClient = new HttpSpainFuelApiClient(),
-    options: SpainFuelProviderOptions = {},
-  ) {
+  constructor(options: SpainFuelProviderOptions = {}) {
+    this.client = options.client ?? new HttpSpainFuelApiClient();
     this.cacheTtlMs = options.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
   }
 
@@ -163,8 +163,10 @@ export function parseSpanishNumber(
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-export function createSpainProvider(): FuelProvider {
-  return new SpainFuelProvider();
+export function createSpainProvider(
+  options: SpainFuelProviderOptions = {},
+): FuelProvider {
+  return new SpainFuelProvider(options);
 }
 
 export {

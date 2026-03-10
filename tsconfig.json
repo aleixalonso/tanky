@@ -5,7 +5,8 @@
     "paths": {
       "@tanky/types": ["packages/types/src/index.ts"],
       "@tanky/core": ["packages/core/src/index.ts"],
-      "@tanky/provider-es": ["packages/provider-es/src/index.ts"]
+      "@tanky/provider-es": ["packages/provider-es/src/index.ts"],
+      "@tanky/sdk": ["packages/sdk/src/index.ts"]
     }
   }
 }

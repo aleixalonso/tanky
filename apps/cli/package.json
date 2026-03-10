@@ -33,12 +33,10 @@
     "cli": "node ./dist/index.js"
   },
   "dependencies": {
+    "@tanky/sdk": "workspace:*",
     "commander": "^14.0.0"
   },
   "devDependencies": {
-    "@tanky/core": "workspace:*",
-    "@tanky/provider-es": "workspace:*",
-    "@tanky/types": "workspace:*",
     "tsup": "^8.4.0"
   }
 }

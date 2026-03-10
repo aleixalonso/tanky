@@ -1,9 +1,8 @@
-import { getBestPrice } from "@tanky/core";
-import type { GasStation } from "@tanky/types";
+import { type GasStation } from "@tanky/sdk";
 import { listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FuelLookupConfig } from "../config/defaultConfig";
-import { spainProvider } from "../lib/providerRegistry";
+import { tankySdk } from "../lib/tankySdk";
 
 export type BestPriceState =
   | { status: "loading" }
@@ -17,7 +16,7 @@ export function useBestPrice(config: FuelLookupConfig) {
     setState({ status: "loading" });
 
     try {
-      const station = await getBestPrice({
+      const station = await tankySdk.getBestPrice({
         country: config.country,
         location: config.location,
         fuelType: config.fuelType,
@@ -41,13 +40,13 @@ export function useBestPrice(config: FuelLookupConfig) {
 
   useEffect(() => {
     void loadBestPrice();
-  }, [loadBestPrice]);
+  }, [config.country, loadBestPrice]);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
 
     void listen("tray-refresh", () => {
-      spainProvider.clearCache();
+      tankySdk.clearCache(config.country);
       void loadBestPrice();
     }).then((cleanup) => {
       unlisten = cleanup;

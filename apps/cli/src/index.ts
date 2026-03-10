@@ -1,10 +1,9 @@
 import {
   getBestPrice,
   getNearestStations,
-  registerProvider,
-} from "@tanky/core";
-import { createSpainProvider } from "@tanky/provider-es";
-import type { FuelType, GasStation } from "@tanky/types";
+  type FuelType,
+  type GasStation,
+} from "@tanky/sdk";
 import { Command } from "commander";
 
 const DEFAULT_COUNTRY = "ES";
@@ -23,8 +22,6 @@ const SUPPORTED_FUEL_TYPES: FuelType[] = [
   "electric",
 ];
 type NearSortOption = "distance" | "price";
-
-registerProvider(createSpainProvider());
 
 const program = new Command();
 

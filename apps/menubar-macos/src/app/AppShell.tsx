@@ -1,5 +1,5 @@
-import type { StationSort } from "@tanky/core";
 import { isTauri } from "@tauri-apps/api/core";
+import type { StationSort } from "@tanky/sdk";
 import {
   PhysicalSize,
   currentMonitor,
@@ -21,7 +21,7 @@ import {
 } from "../config/defaultConfig";
 import { useBestPrice } from "../hooks/useBestPrice";
 import { useNearestStations } from "../hooks/useNearestStations";
-import { spainProvider } from "../lib/providerRegistry";
+import { tankySdk } from "../lib/tankySdk";
 import { BestView } from "../views/BestView";
 import { NearbyView } from "../views/NearbyView";
 import { SettingsView } from "../views/SettingsView";
@@ -76,7 +76,7 @@ export function AppShell() {
   );
 
   const refreshActiveView = useCallback(() => {
-    spainProvider.clearCache();
+    tankySdk.clearCache(config.country);
 
     if (activeView === "best") {
       void loadBestPrice();
@@ -86,7 +86,7 @@ export function AppShell() {
     if (activeView === "nearby") {
       void loadNearestStations();
     }
-  }, [activeView, loadBestPrice, loadNearestStations]);
+  }, [activeView, config.country, loadBestPrice, loadNearestStations]);
 
   useEffect(() => {
     if (!isTauri()) {

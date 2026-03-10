@@ -1,10 +1,8 @@
-import { getNearestStations } from "@tanky/core";
-import type { StationSort } from "@tanky/core";
-import type { GasStation } from "@tanky/types";
+import { type GasStation, type StationSort } from "@tanky/sdk";
 import { listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useState } from "react";
 import type { FuelLookupConfig } from "../config/defaultConfig";
-import { spainProvider } from "../lib/providerRegistry";
+import { tankySdk } from "../lib/tankySdk";
 
 export type NearbyStationsState =
   | { status: "loading" }
@@ -23,7 +21,7 @@ export function useNearestStations(
     setState({ status: "loading" });
 
     try {
-      const stations = await getNearestStations({
+      const stations = await tankySdk.getNearestStations({
         country: config.country,
         location: config.location,
         fuelType: config.fuelType,
@@ -41,13 +39,13 @@ export function useNearestStations(
 
   useEffect(() => {
     void loadNearestStations();
-  }, [loadNearestStations]);
+  }, [config.country, loadNearestStations]);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
 
     void listen("tray-refresh", () => {
-      spainProvider.clearCache();
+      tankySdk.clearCache(config.country);
       void loadNearestStations();
     }).then((cleanup) => {
       unlisten = cleanup;

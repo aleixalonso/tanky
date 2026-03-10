@@ -44,34 +44,22 @@ importers:
 
   apps/cli:
     dependencies:
+      '@tanky/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
       commander:
         specifier: ^14.0.0
         version: 14.0.3
     devDependencies:
-      '@tanky/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@tanky/provider-es':
-        specifier: workspace:*
-        version: link:../../packages/provider-es
-      '@tanky/types':
-        specifier: workspace:*
-        version: link:../../packages/types
       tsup:
         specifier: ^8.4.0
         version: 8.5.1(postcss@8.5.8)(typescript@5.9.3)
 
   apps/menubar-macos:
     dependencies:
-      '@tanky/core':
+      '@tanky/sdk':
         specifier: workspace:*
-        version: link:../../packages/core
-      '@tanky/provider-es':
-        specifier: workspace:*
-        version: link:../../packages/provider-es
-      '@tanky/types':
-        specifier: workspace:*
-        version: link:../../packages/types
+        version: link:../../packages/sdk
       '@tauri-apps/api':
         specifier: ^2.8.0
         version: 2.10.1
@@ -110,6 +98,22 @@ importers:
 
   packages/provider-es:
     dependencies:
+      '@tanky/types':
+        specifier: workspace:*
+        version: link:../types
+    devDependencies:
+      tsup:
+        specifier: ^8.4.0
+        version: 8.5.1(postcss@8.5.8)(typescript@5.9.3)
+
+  packages/sdk:
+    dependencies:
+      '@tanky/core':
+        specifier: workspace:*
+        version: link:../core
+      '@tanky/provider-es':
+        specifier: workspace:*
+        version: link:../provider-es
       '@tanky/types':
         specifier: workspace:*
         version: link:../types

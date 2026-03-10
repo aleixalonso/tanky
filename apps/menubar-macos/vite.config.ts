@@ -29,6 +29,7 @@ export default defineConfig(() => ({
         __dirname,
         "../../packages/provider-es/src/index.ts",
       ),
+      "@tanky/sdk": resolve(__dirname, "../../packages/sdk/src/index.ts"),
       "@tanky/types": resolve(__dirname, "../../packages/types/src/index.ts"),
     },
   },
