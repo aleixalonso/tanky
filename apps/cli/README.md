@@ -1,6 +1,6 @@
 # @tanky/cli
 
-CLI to retrieve nearby fuel prices from public datasets.
+Command-line interface for fuel price lookup from public datasets.
 
 ## Install
 
@@ -55,7 +55,7 @@ Options:
 
 ## Output
 
-Default output is Markdown-like text.
+Default output is Markdown.
 
 Use `--json` to get machine-readable JSON.
 

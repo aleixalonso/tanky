@@ -11,8 +11,6 @@
 
 Tanky is a monorepo with a TypeScript SDK, CLI, and a macOS menubar desktop app for fuel price lookup.
 
-Tagline: **Fuel price lookup, built for automation and extensibility.**
-
 ## Quick Start
 
 Install globally:
@@ -179,7 +177,7 @@ packages/
 
 ## Desktop App
 
-The first desktop app lives at `apps/menubar-macos`.
+The desktop app lives at `apps/menubar-macos`.
 
 - Menubar icon + popup panel
 - Best price tab
@@ -191,7 +189,7 @@ See [apps/menubar-macos/README.md](apps/menubar-macos/README.md) for app-specifi
 
 ## Data Sources
 
-Current Spain provider dataset:
+Current data source for Spain:
 
 - https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/
 

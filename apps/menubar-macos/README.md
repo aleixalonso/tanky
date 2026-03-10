@@ -24,7 +24,7 @@ Build frontend bundle:
 pnpm --filter @tanky/menubar-macos build
 ```
 
-## What It Does
+## Features
 
 - Shows an icon in the macOS menubar
 - Opens a popup panel when clicking the tray icon
@@ -35,16 +35,16 @@ pnpm --filter @tanky/menubar-macos build
 - Supports manual refresh from the UI and tray menu
 - Supports quit from tray menu
 
-## Data + Logic
+## Data and Logic
 
 This app reuses shared workspace packages:
 
 - `@tanky/core`
 - `@tanky/provider-es`
 
-No fuel business logic is duplicated in the app.
+The app reuses shared workspace packages for domain logic rather than duplicating it.
 
-Current hardcoded/default config is:
+Default configuration:
 
 - latitude: `41.39`
 - longitude: `2.17`
