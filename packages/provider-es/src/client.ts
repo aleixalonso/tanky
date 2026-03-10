@@ -1,6 +1,17 @@
 const DATASET_URL =
   "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/";
 
+export type FetchLike = (
+  input: string,
+  init?: {
+    headers?: Record<string, string>;
+  },
+) => Promise<{
+  ok: boolean;
+  status: number;
+  json(): Promise<unknown>;
+}>;
+
 export interface SpanishStationRecord {
   "C.P.": string;
   Dirección: string;
@@ -44,8 +55,10 @@ export interface SpainFuelApiClient {
 }
 
 export class HttpSpainFuelApiClient implements SpainFuelApiClient {
+  constructor(private readonly fetchImpl: FetchLike = fetch) {}
+
   async getStations(): Promise<DatasetResponse> {
-    const response = await fetch(DATASET_URL, {
+    const response = await this.fetchImpl(DATASET_URL, {
       headers: {
         Accept: "application/json",
       },

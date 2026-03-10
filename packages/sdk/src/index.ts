@@ -8,6 +8,7 @@ import {
 } from "@tanky/core";
 import {
   createSpainProvider,
+  HttpSpainFuelApiClient,
   type SpainFuelApiClient,
 } from "@tanky/provider-es";
 import type { FuelProvider, GasStation } from "@tanky/types";
@@ -140,3 +141,4 @@ export type {
   LocationInput,
 } from "@tanky/types";
 export type { SpainFuelApiClient } from "@tanky/provider-es";
+export { HttpSpainFuelApiClient } from "@tanky/provider-es";

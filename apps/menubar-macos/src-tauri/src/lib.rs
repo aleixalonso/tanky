@@ -6,9 +6,6 @@ use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{Emitter, Listener};
 
-const SPAIN_FUEL_DATASET_URL: &str =
-    "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/";
-
 #[tauri::command]
 fn get_current_location(
     app: tauri::AppHandle,
@@ -16,42 +13,11 @@ fn get_current_location(
     location::get_current_location(&app)
 }
 
-#[tauri::command]
-fn fetch_spain_fuel_dataset() -> Result<serde_json::Value, String> {
-    let output = std::process::Command::new("/usr/bin/curl")
-        .args([
-            "--fail",
-            "--silent",
-            "--show-error",
-            "--location",
-            "--header",
-            "Accept: application/json",
-            SPAIN_FUEL_DATASET_URL,
-        ])
-        .output()
-        .map_err(|error| format!("Failed to run curl: {error}"))?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-        let message = if stderr.is_empty() {
-            format!("curl exited with status {}", output.status)
-        } else {
-            stderr
-        };
-        return Err(format!("Failed to load fuel dataset: {message}"));
-    }
-
-    serde_json::from_slice(&output.stdout)
-        .map_err(|error| format!("Failed to parse fuel dataset: {error}"))
-}
-
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_http::init())
         .plugin(tauri_nspanel::init())
-        .invoke_handler(tauri::generate_handler![
-            get_current_location,
-            fetch_spain_fuel_dataset
-        ])
+        .invoke_handler(tauri::generate_handler![get_current_location])
         .setup(|app| {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);

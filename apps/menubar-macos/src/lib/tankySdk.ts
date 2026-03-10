@@ -1,18 +1,10 @@
-import { invoke, isTauri } from "@tauri-apps/api/core";
-import { createTankySdk, type SpainFuelApiClient, type TankySdk } from "@tanky/sdk";
-
-interface DatasetResponse {
-  Fecha: string;
-  ListaEESSPrecio: unknown[];
-  Nota: string;
-  ResultadoConsulta: string;
-}
-
-class TauriSpainFuelApiClient implements SpainFuelApiClient {
-  async getStations(): Promise<DatasetResponse> {
-    return invoke<DatasetResponse>("fetch_spain_fuel_dataset");
-  }
-}
+import { isTauri } from "@tauri-apps/api/core";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+import {
+  createTankySdk,
+  HttpSpainFuelApiClient,
+  type TankySdk,
+} from "@tanky/sdk";
 
 function createMenubarSdk(): TankySdk {
   if (!isTauri()) {
@@ -21,7 +13,7 @@ function createMenubarSdk(): TankySdk {
 
   return createTankySdk({
     countryClients: {
-      ES: new TauriSpainFuelApiClient(),
+      ES: new HttpSpainFuelApiClient(tauriFetch),
     },
   });
 }

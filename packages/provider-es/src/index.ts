@@ -170,6 +170,7 @@ export function createSpainProvider(
 }
 
 export {
+  type FetchLike,
   HttpSpainFuelApiClient,
   type DatasetResponse,
   type SpainFuelApiClient,
