@@ -73,7 +73,7 @@ describe("@tanky/provider-es", () => {
         return createDatasetResponse();
       },
     };
-    const provider = new SpainFuelProvider(client);
+    const provider = new SpainFuelProvider({ client });
 
     const stations: GasStation[] = await provider.searchStations({
       location: { lat: 41.39, lon: 2.17 },
@@ -88,7 +88,7 @@ describe("@tanky/provider-es", () => {
         return createDatasetResponse();
       },
     };
-    const provider = new SpainFuelProvider(client);
+    const provider = new SpainFuelProvider({ client });
 
     const stations: GasStation[] = await provider.searchStations({
       location: { lat: 41.39, lon: 2.17 },
@@ -102,7 +102,7 @@ describe("@tanky/provider-es", () => {
     const client = {
       getStations: vi.fn(async () => createDatasetResponse()),
     };
-    const provider = new SpainFuelProvider(client);
+    const provider = new SpainFuelProvider({ client });
 
     await provider.searchStations({
       location: { lat: 41.39, lon: 2.17 },
@@ -120,7 +120,7 @@ describe("@tanky/provider-es", () => {
     const client = {
       getStations: vi.fn(async () => createDatasetResponse()),
     };
-    const provider = new SpainFuelProvider(client);
+    const provider = new SpainFuelProvider({ client });
 
     await provider.searchStations({
       location: { lat: 41.39, lon: 2.17 },
@@ -134,15 +134,13 @@ describe("@tanky/provider-es", () => {
   });
 
   it("delegates dataset fetching to the HTTP client", async () => {
-    const client = new HttpSpainFuelApiClient();
     const fetchMock = vi.fn(async () => ({
       ok: true,
       async json() {
         return createDatasetResponse();
       },
     }));
-
-    vi.stubGlobal("fetch", fetchMock);
+    const client = new HttpSpainFuelApiClient(fetchMock);
 
     try {
       await expect(client.getStations()).resolves.toEqual(
@@ -150,25 +148,26 @@ describe("@tanky/provider-es", () => {
       );
       expect(fetchMock).toHaveBeenCalledTimes(1);
     } finally {
-      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
     }
   });
 
   it("throws when the HTTP client request fails", async () => {
-    const client = new HttpSpainFuelApiClient();
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 503,
+      async json() {
+        return null;
+      },
     }));
-
-    vi.stubGlobal("fetch", fetchMock);
+    const client = new HttpSpainFuelApiClient(fetchMock);
 
     try {
       await expect(client.getStations()).rejects.toThrow(
         "Failed to fetch Spanish fuel dataset: 503",
       );
     } finally {
-      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
     }
   });
 });
