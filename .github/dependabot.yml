@@ -1,0 +1,30 @@
+version: 2
+updates:
+  # pnpm workspace: Dependabot's YAML value for pnpm projects is `npm`.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  # Tauri desktop app (Rust side of the menubar app).
+  - package-ecosystem: cargo
+    directory: /apps/menubar-macos/src-tauri
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      cargo-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      actions-minor-and-patch:
+        update-types: [minor, patch]
