@@ -202,6 +202,14 @@ pnpm dev
 pnpm test
 ```
 
+### CI
+
+- `.github/workflows/test-code.yml` runs `pnpm test` and `pnpm build` on Node 22 and 24.
+- `.github/workflows/rust.yml` compiles the Tauri crate of the menubar app
+  (`apps/menubar-macos/src-tauri`) with `cargo check --locked` whenever the crate, its
+  `Cargo.lock` or that workflow changes, so `cargo` dependency bumps are verified.
+  It does not build a Tauri bundle.
+
 ## License
 
 MIT
