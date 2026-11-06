@@ -1,0 +1,80 @@
+# Compile-check the Rust side of the menubar app (apps/menubar-macos/src-tauri).
+# This verifies that the crate and its Cargo.lock resolve and compile with
+# `cargo check --locked`, so cargo dependency bumps cannot pass CI without being
+# built. It intentionally does not run `tauri build`: we only need a compile
+# check, not a bundle or installer.
+# The frontend bundle has to exist first because `tauri::generate_context!`
+# embeds `frontendDist` (../dist) at compile time and fails if it is missing.
+# Runner: macOS. The crate links AppKit/Foundation through objc2 and
+# tauri-nspanel, so `cargo check` on Linux fails with `unresolved import
+# objc2_app_kit` no matter which Tauri Linux libraries are installed
+# (verified on run 42203797307). Public repo, so macOS minutes are free.
+
+name: Rust (Tauri crate)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/menubar-macos/src-tauri/**"
+      - ".github/workflows/rust.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/menubar-macos/src-tauri/**"
+      - ".github/workflows/rust.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rust-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  cargo-check:
+    name: Cargo check
+    runs-on: macos-latest
+    timeout-minutes: 30
+    env:
+      CARGO_TERM_COLOR: always
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo registry, git dependencies and target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            apps/menubar-macos/src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('apps/menubar-macos/src-tauri/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install JS dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build menubar frontend
+        # `tauri::generate_context!` embeds `../dist` and panics at compile time
+        # if it is missing.
+        run: pnpm --filter @tanky/menubar-macos build
+
+      - name: Cargo check (Tauri crate)
+        run: cargo check --locked --manifest-path apps/menubar-macos/src-tauri/Cargo.toml
