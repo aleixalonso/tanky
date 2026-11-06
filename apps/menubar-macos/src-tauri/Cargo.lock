@@ -3471,7 +3471,8 @@ dependencies = [
 [[package]]
 name = "tauri-nspanel"
 version = "2.1.1"
-source = "git+https://github.com/ahkohd/tauri-nspanel?branch=v2.1#3ffa93ed14e0f8e857e43619b4157f2a685d35a4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "46152b976f2cf82dc8ea0b942bbe2d9caee100b944529b7ed9c3ab048fc2637d"
 dependencies = [
  "objc2",
  "objc2-app-kit",
