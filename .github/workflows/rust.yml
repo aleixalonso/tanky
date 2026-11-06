@@ -17,11 +17,27 @@ on:
     branches: [main]
     paths:
       - "apps/menubar-macos/src-tauri/**"
+      - "apps/menubar-macos/index.html"
+      - "apps/menubar-macos/package.json"
+      - "apps/menubar-macos/vite.config.*"
+      - "apps/menubar-macos/src/**"
+      - "**/package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig*.json"
       - ".github/workflows/rust.yml"
   push:
     branches: [main]
     paths:
       - "apps/menubar-macos/src-tauri/**"
+      - "apps/menubar-macos/index.html"
+      - "apps/menubar-macos/package.json"
+      - "apps/menubar-macos/vite.config.*"
+      - "apps/menubar-macos/src/**"
+      - "**/package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig*.json"
       - ".github/workflows/rust.yml"
   workflow_dispatch:
 
