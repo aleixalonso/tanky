@@ -9,6 +9,13 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # TypeScript 7 is blocked upstream, not here: tsup@9 imports the compiler
+      # API (parseJsonConfigFileContent) for --dts and TS 7 no longer ships it.
+      # tsup has no TS 7 support planned (egoist/tsup#1405). Revisit then.
+      - dependency-name: typescript
+        update-types:
+          - "version-update:semver-major"
 
   # Tauri desktop app (Rust side of the menubar app).
   - package-ecosystem: cargo
