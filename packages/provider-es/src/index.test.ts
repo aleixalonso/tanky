@@ -54,9 +54,11 @@ describe("@tanky/provider-es", () => {
   });
 
   it("normalizes a Spanish station record", () => {
-    const station = normalizeStation(
-      createDatasetResponse().ListaEESSPrecio[0],
-    );
+    const [record] = createDatasetResponse().ListaEESSPrecio;
+    if (!record) {
+      throw new Error("Expected a station record in the test dataset");
+    }
+    const station = normalizeStation(record);
 
     expect(station?.country).toBe("ES");
     expect(station?.prices).toEqual(
@@ -136,6 +138,7 @@ describe("@tanky/provider-es", () => {
   it("delegates dataset fetching to the HTTP client", async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,
+      status: 200,
       async json() {
         return createDatasetResponse();
       },
