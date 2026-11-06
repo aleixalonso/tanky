@@ -23,6 +23,6 @@
     "turbo": "^2.11.10",
     "typescript": "^5.8.2",
     "vitest": "^3.0.8",
-    "@types/node": "^24.0.0"
+    "@types/node": "^26.6.6"
   }
 }
