@@ -19,6 +19,13 @@ updates:
       - dependency-name: typescript
         update-types:
           - "version-update:semver-major"
+      # Preset major 10 needs conventional-changelog-writer@9, but
+      # @semantic-release/release-notes-generator@14 (latest stable) pins
+      # writer 8 and prompts the preset to render a hard failure instead.
+      # Revisit when release-notes-generator 15 is stable on Node <= 24.
+      - dependency-name: conventional-changelog-conventionalcommits
+        update-types:
+          - "version-update:semver-major"
 
   # Tauri desktop app (Rust side of the menubar app).
   - package-ecosystem: cargo
